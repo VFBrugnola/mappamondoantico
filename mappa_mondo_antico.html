@@ -254,6 +254,7 @@ function createMarker(city) {
   var icon = L.divIcon({ className:"", html:svg, iconSize:[16,16], iconAnchor:[8,8] });
   var marker = L.marker([city.lat, city.lng], { icon:icon });
   marker.bindPopup(makePopup(city, civ), { maxWidth:260 });
+  marker.on("popupopen", function() { fetchWikiImage(city.name); });
   return marker;
 }
 
