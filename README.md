@@ -14,7 +14,7 @@ Un'applicazione web interattiva per esplorare le principali città del mondo ant
 ## Come usare
  
 Apri la mappa qui:  
-👉 **[vfbrugnola.github.io/mappamondoantico](https://vfbrugnola.github.io/mappamondoantico/mappa_mondo_antico.html)**
+👉 **[vfbrugnola.github.io/mappamondoantico](https://vfbrugnola.github.io/mappamondoantico/)**
  
 - Clicca su una città per vedere nome, civiltà, descrizione, nome moderno, reperto e museo
 - Usa i pulsanti in basso per filtrare per periodo storico
