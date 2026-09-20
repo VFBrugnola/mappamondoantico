@@ -233,17 +233,76 @@ function formatYear(y) {
 function isActive(city, year) { return city.start <= year && city.end >= year; }
 
 // ── MARKERS ──────────────────────────────────────────────────────────────────
+var wikiTitles = {
+  "Atene":"Athens","Sparta":"Sparta","Corinto":"Corinth","Siracusa":"Syracuse,_Sicily",
+  "Mileto":"Miletus","Efeso":"Ephesus","Massalia":"Massalia","Bisanzio":"Byzantium",
+  "Cirene":"Cyrene,_Libya","Agrigento":"Akragas","Taranto":"Taras","Crotone":"Croton",
+  "Napoli":"Neapolis","Rodi":"Rhodes","Alessandria":"Alexandria","Pergamo":"Pergamon",
+  "Antiochia":"Antioch_on_the_Orontes","Seleucia al Tigri":"Seleucia",
+  "Roma":"Rome","Pompei":"Pompeii","Lugdunum":"Lugdunum","Londinium":"Londinium",
+  "Mediolanum":"Mediolanum","Hispalis":"Hispalis","Augusta Treverorum":"Augusta_Treverorum",
+  "Leptis Magna":"Leptis_Magna","Emerita Augusta":"Emerita_Augusta",
+  "Ravenna":"Ravenna","Aquileia":"Aquileia","Capua":"Capua","Brundisium":"Brindisi",
+  "Tiro":"Tyre,_Lebanon","Sidone":"Sidon","Biblo":"Byblos","Utica":"Utica,_Tunisia",
+  "Cartagine":"Carthage","Mozia":"Motya","Panormo":"Panormus",
+  "Menfi":"Memphis,_Egypt","Tebe":"Thebes,_Egypt","Eliopoli":"Heliopolis,_Egypt",
+  "Amarna":"Amarna","Pi-Ramesse":"Pi-Ramesses","Avaris":"Avaris",
+  "Persepoli":"Persepolis","Susa":"Susa","Ecbatana":"Ecbatana",
+  "Sardi":"Sardis","Pasargade":"Pasargadae",
+  "Veio":"Veii","Tarquinia":"Tarquinia","Cerveteri":"Cerveteri","Volterra":"Volterra",
+  "Babilonia":"Babylon","Ninive":"Nineveh","Ur":"Ur","Uruk":"Uruk",
+  "Assur":"Assur","Nippur":"Nippur","Mari":"Mari,_Syria","Akkad":"Akkad",
+  "Numantia":"Numantia","Tartesso":"Tartessos","Emporion":"Empuries",
+  "Hattusa":"Hattusa","Karkemish":"Carchemish","Kanesh":"Kanesh","Qadesh":"Battle_of_Kadesh",
+  "Micene":"Mycenae","Tirinto":"Tiryns","Pilo":"Pylos","Tebe (Beozia)":"Thebes,_Greece",
+  "Cnosso":"Knossos","Festo":"Phaistos","Akrotiri":"Akrotiri,_Santorini",
+  "Ugarit":"Ugarit","Ebla":"Ebla","Megiddo":"Megiddo","Gerico":"Jericho"
+};
+
 function makePopup(city, civ) {
-  var imgBase = "https://commons.wikimedia.org/wiki/Special:FilePath/";
+  var uid = city.name.replace(/[^a-zA-Z0-9]/g,"_");
   var h = "";
   h += "<div class='popup-title'>" + city.name + "</div>";
   if (city.modern) h += "<div class='popup-modern'>Oggi: " + city.modern + "</div>";
   h += "<div class='popup-civ' style='color:" + civ.color + "'>" + civ.label + "</div>";
-  if (city.img) h += "<img class='popup-img' src='" + imgBase + encodeURIComponent(city.img) + "?width=240' onerror=\"this.style.display='none'\" alt='reperto'/>";
+  if (wikiTitles[city.name]) {
+    h += "<div id='wslot-" + uid + "'><div style='font-size:0.6rem;color:#4a3820;font-style:italic;margin-bottom:4px;'>Caricamento immagine…</div></div>";
+  }
   h += "<div class='popup-desc'>" + city.desc + "</div>";
   h += "<div class='popup-era'>" + city.era + "</div>";
   if (city.museum) h += "<div class='popup-museum'>" + city.museum + "</div>";
+  if (wikiTitles[city.name]) {
+    h += "<div style='margin-top:5px;'><a href='https://it.wikipedia.org/wiki/"
+       + encodeURIComponent(wikiTitles[city.name].replace(/_/g,' '))
+       + "' target='_blank' style='font-size:0.62rem;color:#5a80a0;'>Wikipedia →</a></div>";
+  }
   return h;
+}
+
+function fetchWikiImage(cityName) {
+  var title = wikiTitles[cityName];
+  if (!title) return;
+  var uid = cityName.replace(/[^a-zA-Z0-9]/g,"_");
+  fetch("https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(title))
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var slot = document.getElementById("wslot-" + uid);
+      if (!slot) return;
+      if (data.thumbnail && data.thumbnail.source) {
+        var img = document.createElement("img");
+        img.className = "popup-img";
+        img.src = data.thumbnail.source;
+        img.alt = "immagine";
+        slot.innerHTML = "";
+        slot.appendChild(img);
+      } else {
+        slot.innerHTML = "";
+      }
+    })
+    .catch(function(){
+      var slot = document.getElementById("wslot-" + uid);
+      if (slot) slot.innerHTML = "";
+    });
 }
 
 function createMarker(city) {
