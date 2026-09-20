@@ -10,6 +10,7 @@ Un'applicazione web interattiva per esplorare le principali città del mondo ant
 - **51 eventi puntuali** sulla timeline: battaglie, eruzioni, fondazioni, crolli di impero
 - **Popup informativi** con descrizione della città, nome moderno, immagine di un reperto significativo e museo consigliato per visitarlo
 - **Filtro per civiltà** dalla legenda interattiva
+
 ## Come usare
  
 Apri la mappa qui:  
@@ -27,5 +28,5 @@ Apri la mappa qui:
 - File unico HTML, nessuna dipendenza esterna oltre alle librerie CDN
 ## Licenza
  
-© 2025 Fabrizio Brugnola — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)  
+© 2026 Vito Fabrizio Brugnola — [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)  
 Libero utilizzo con citazione dell'autore.
