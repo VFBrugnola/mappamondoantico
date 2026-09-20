@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Città Antiche del Mediterraneo</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="data/civilizations.js"></script>
+<script src="data/periods.js"></script>
+<script src="data/events.js"></script>
+<script src="data/cities.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:"Georgia",serif; background:#1a1208; color:#e8d9b0;
+       height:100vh; display:flex; flex-direction:column; overflow:hidden; }
+
+/* HEADER */
+header { background:linear-gradient(to bottom,#0e0a05,#1a1208);
+         border-bottom:1px solid #5c3d0a; padding:7px 14px;
+         display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+header h1 { font-size:0.95rem; letter-spacing:0.1em; text-transform:uppercase;
+            color:#d4a843; font-weight:normal; }
+header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
+
+/* MAP */
+#map { flex:1; width:100%; min-height:0; }
+.leaflet-container { background:#0d1a2e; }
+
+/* PERIOD BAR */
+#period-bar { flex-shrink:0; background:#0a0805; border-top:1px solid #2a1a00;
+  padding:5px 10px; display:flex; gap:5px; overflow-x:auto; align-items:center; }
+#period-bar::-webkit-scrollbar { height:3px; }
+#period-bar::-webkit-scrollbar-thumb { background:#5c3d0a; border-radius:2px; }
+.period-btn { flex-shrink:0; background:none; border:1px solid #3a2a0a; color:#8a7050;
+  font-family:"Georgia",serif; font-size:0.6rem; padding:3px 8px; cursor:pointer;
+  border-radius:2px; white-space:nowrap; transition:all 0.15s; }
+.period-btn:hover, .period-btn.active { border-color:#d4a843; color:#d4a843;
+  background:rgba(212,168,67,0.12); }
+#btn-all-periods { flex-shrink:0; background:none; border:1px solid #5c3d0a; color:#d4a843;
+  font-family:"Georgia",serif; font-size:0.6rem; padding:3px 9px; cursor:pointer;
+  border-radius:2px; white-space:nowrap; }
+#btn-all-periods.active { background:rgba(212,168,67,0.18); }
+
+/* TIMELINE */
+#timeline-bar { flex-shrink:0; background:#0e0a05; border-top:1px solid #3a2a0a;
+  padding:7px 14px 8px; display:flex; align-items:center; gap:10px; }
+#year-label { font-family:"Georgia",serif; font-size:0.85rem; color:#d4a843;
+  min-width:95px; text-align:center; letter-spacing:0.05em; }
+#year-slider { flex:1; -webkit-appearance:none; height:4px;
+  background:linear-gradient(to right,#5c3d0a,#d4a843,#5c3d0a);
+  border-radius:2px; outline:none; cursor:pointer; }
+#year-slider::-webkit-slider-thumb { -webkit-appearance:none; width:15px; height:15px;
+  border-radius:50%; background:#d4a843; border:2px solid #0e0a05; cursor:pointer; }
+#year-slider::-moz-range-thumb { width:15px; height:15px; border-radius:50%;
+  background:#d4a843; border:2px solid #0e0a05; cursor:pointer; }
+
+/* EVENT PANEL */
+#event-panel { flex-shrink:0; background:#070503; border-top:1px solid #2a1a00;
+  padding:6px 14px 7px; min-height:44px; display:none; gap:8px; align-items:flex-start; }
+#event-panel.visible { display:flex; }
+#event-dot { width:8px; height:8px; border-radius:50%; background:#d4a843;
+  flex-shrink:0; margin-top:4px; box-shadow:0 0 6px rgba(212,168,67,0.5); }
+#event-body { flex:1; min-width:0; }
+#event-title { font-size:0.72rem; color:#d4a843; margin-bottom:1px; }
+#event-year-label { font-size:0.6rem; color:#4a3010; font-style:italic; }
+#event-desc { font-size:0.65rem; color:#8a7050; line-height:1.4; margin-top:2px; }
+#event-tipo { font-size:0.58rem; color:#3a2a0a; text-transform:uppercase;
+  letter-spacing:0.06em; margin-top:2px; }
+
+/* LEGEND */
+.legend { background:rgba(14,10,5,0.93); border:1px solid #5c3d0a; border-radius:4px;
+  padding:9px 11px; font-family:"Georgia",serif; font-size:0.66rem;
+  color:#c8b890; min-width:155px; max-height:calc(100vh - 200px);
+  overflow-y:auto; backdrop-filter:blur(4px); }
+.legend h4 { font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:#d4a843; margin-bottom:7px; border-bottom:1px solid #3a2a0a;
+  padding-bottom:4px; font-weight:normal; }
+.legend-item { display:flex; align-items:center; gap:6px; margin-bottom:4px;
+  cursor:pointer; transition:opacity 0.2s; user-select:none; }
+.legend-item:hover { opacity:0.75; }
+.legend-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0;
+  border:1.5px solid rgba(255,255,255,0.2); }
+.legend-item.dim { opacity:0.3; }
+
+/* POPUP */
+.leaflet-popup-content-wrapper { background:#0e0a05; border:1px solid #5c3d0a;
+  border-radius:4px; color:#e8d9b0; font-family:"Georgia",serif;
+  box-shadow:0 4px 20px rgba(0,0,0,0.7); max-width:270px; }
+.leaflet-popup-tip { background:#5c3d0a; }
+.leaflet-popup-content { margin:10px 13px; }
+.popup-title { font-size:0.92rem; color:#d4a843; margin-bottom:1px; }
+.popup-modern { font-size:0.63rem; color:#6a5535; font-style:italic; margin-bottom:2px; }
+.popup-badges { display:flex; gap:5px; margin-bottom:5px; flex-wrap:wrap; }
+.popup-badge { font-size:0.58rem; padding:1px 5px; border-radius:2px;
+  border:1px solid; letter-spacing:0.04em; }
+.popup-img { width:100%; height:95px; object-fit:cover; border-radius:2px;
+  margin-bottom:5px; border:1px solid #3a2a0a; display:block; }
+.popup-desc { font-size:0.7rem; color:#c8b890; line-height:1.5; }
+.popup-era { font-size:0.62rem; color:#6a5535; margin-top:3px; }
+.popup-museum { font-size:0.62rem; color:#8a7050; margin-top:5px;
+  padding-top:4px; border-top:1px solid #2a1a00; line-height:1.4; }
+.popup-museum::before { content:"Museo: "; color:#5a4020; }
+.popup-events { margin-top:6px; padding-top:5px; border-top:1px solid #2a1a00; }
+.popup-events-title { font-size:0.6rem; color:#5a4020; text-transform:uppercase;
+  letter-spacing:0.06em; margin-bottom:4px; }
+.popup-event-item { font-size:0.65rem; color:#8a7050; margin-bottom:3px;
+  padding-left:8px; border-left:2px solid #3a2a0a; line-height:1.3; }
+.popup-event-item span { color:#a08040; font-size:0.6rem; }
+.popup-wiki { margin-top:5px; }
+.popup-wiki a { font-size:0.62rem; color:#5a80a0; }
+
+.leaflet-control-zoom a { background:#0e0a05 !important; color:#d4a843 !important;
+  border-color:#5c3d0a !important; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Città Antiche del Mediterraneo</h1>
+    <p id="header-stats">IX millennio a.C. &ndash; V sec. d.C.</p>
+  </div>
+  <div style="font-size:0.6rem;color:#5a4020;font-style:italic;text-align:right;">
+    Clicca le città &bull; Filtra per civiltà o periodo
+  </div>
+</header>
+<div id="map"></div>
+<div id="period-bar">
+  <button id="btn-all-periods" class="active" onclick="selectPeriod(null,this)">Tutte le epoche</button>
+</div>
+<div id="timeline-bar">
+  <input type="range" id="year-slider" min="-3500" max="500" step="25" value="-1200" oninput="onSlider(this.value)">
+  <div id="year-label">&#8212;</div>
+</div>
+<div id="event-panel">
+  <div id="event-dot"></div>
+  <div id="event-body">
+    <div id="event-title"></div>
+    <div id="event-year-label"></div>
+    <div id="event-desc"></div>
+    <div id="event-tipo"></div>
+  </div>
+</div>
+
+<script>
+// ── MAPPA ────────────────────────────────────────────────────────────────────
+var map = L.map("map", { center:[35,28], zoom:4, minZoom:3, maxZoom:10 });
+var tileProviders = [
+  { url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", opts:{ attribution:"&copy; Esri", maxZoom:18 } },
+  { url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png", opts:{ attribution:"&copy; OpenStreetMap contributors", maxZoom:19 } },
+  { url:"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", opts:{ attribution:"&copy; CARTO", subdomains:"abcd", maxZoom:18 } }
+];
+var tileIdx=0, baseLayer=null;
+function tryNextTile() {
+  if (tileIdx >= tileProviders.length) return;
+  if (baseLayer) map.removeLayer(baseLayer);
+  var p = tileProviders[tileIdx];
+  baseLayer = L.tileLayer(p.url, p.opts);
+  var timer = setTimeout(function() {
+    if (document.querySelectorAll(".leaflet-tile-loaded").length === 0) { tileIdx++; tryNextTile(); }
+  }, 4000);
+  baseLayer.on("tileload", function() { clearTimeout(timer); });
+  baseLayer.on("tileerror", function() { clearTimeout(timer); tileIdx++; tryNextTile(); });
+  baseLayer.addTo(map);
+}
+tryNextTile();
+
+// ── STATO ────────────────────────────────────────────────────────────────────
+var layerGroup = L.layerGroup().addTo(map);
+var allMarkers = [];
+var hiddenCivs = {};
+var sliderActive = false;
+var currentYear = -1200;
+var currentPeriod = null;
+
+var TIPO_ICONS = {
+  battaglia: "⚔️", fondazione: "🏛️", distruzione: "🔥",
+  trattato: "📜", disastro: "🌋", politico: "👑",
+  culturale: "📚", scientifico: "🔭"
+};
+
+// ── PERIODO BUTTONS ───────────────────────────────────────────────────────────
+var periodBar = document.getElementById("period-bar");
+PERIODS.forEach(function(p) {
+  var btn = document.createElement("button");
+  btn.className = "period-btn";
+  btn.textContent = p.short;
+  btn.title = p.label + " (" + formatYear(p.min) + " – " + formatYear(p.max) + ")";
+  btn.addEventListener("click", function() { selectPeriod(p, btn); });
+  periodBar.appendChild(btn);
+});
+
+function selectPeriod(p, btn) {
+  currentPeriod = p;
+  document.querySelectorAll(".period-btn, #btn-all-periods").forEach(function(b) { b.classList.remove("active"); });
+  btn.classList.add("active");
+  if (p) {
+    sliderActive = true;
+    var slider = document.getElementById("year-slider");
+    slider.min = p.min; slider.max = p.max; slider.value = p.mid;
+    onSlider(p.mid);
+    document.getElementById("event-panel").classList.add("visible");
+  } else {
+    sliderActive = false;
+    document.getElementById("year-slider").min = -3500;
+    document.getElementById("year-slider").max = 500;
+    document.getElementById("year-label").textContent = "—";
+    document.getElementById("event-panel").classList.remove("visible");
+    updateVisibility();
+  }
+}
+
+// ── SLIDER ────────────────────────────────────────────────────────────────────
+document.getElementById("year-slider").addEventListener("mousedown", function() {
+  sliderActive = true;
+  document.getElementById("event-panel").classList.add("visible");
+});
+document.getElementById("year-slider").addEventListener("touchstart", function() {
+  sliderActive = true;
+  document.getElementById("event-panel").classList.add("visible");
+});
+
+function onSlider(val) {
+  currentYear = parseInt(val);
+  sliderActive = true;
+  document.getElementById("year-label").textContent = formatYear(currentYear);
+  // Trova l'evento globale più vicino entro 75 anni
+  var nearest = null, bestDist = 999999;
+  EVENTS.forEach(function(e) {
+    if (e.livello !== "globale") return;
+    var d = Math.abs(e.anno - currentYear);
+    if (d < bestDist) { bestDist = d; nearest = e; }
+  });
+  if (nearest && bestDist <= 75) {
+    document.getElementById("event-dot").style.display = "block";
+    document.getElementById("event-title").textContent = nearest.titolo;
+    document.getElementById("event-year-label").textContent = formatYear(nearest.anno);
+    document.getElementById("event-desc").textContent = nearest.desc;
+    document.getElementById("event-tipo").textContent = (TIPO_ICONS[nearest.tipo] || "") + " " + nearest.tipo;
+  } else {
+    document.getElementById("event-dot").style.display = "none";
+    document.getElementById("event-title").textContent = "";
+    document.getElementById("event-year-label").textContent = "";
+    document.getElementById("event-desc").textContent = "Nessun evento di rilievo in questo periodo.";
+    document.getElementById("event-tipo").textContent = "";
+  }
+  updateVisibility();
+}
+
+function formatYear(y) {
+  if (y < 0) return Math.abs(y) + " a.C.";
+  if (y === 0) return "1 d.C.";
+  return y + " d.C.";
+}
+function isActive(city, year) { return city.start <= year && city.end >= year; }
+
+// ── POPUP ─────────────────────────────────────────────────────────────────────
+function getCityEvents(cityId) {
+  return EVENTS.filter(function(e) {
+    return e.livello === "locale" && e.city === cityId;
+  }).sort(function(a,b) { return a.anno - b.anno; });
+}
+
+function makePopup(city, civ) {
+  var uid = city.id;
+  var h = "";
+  h += "<div class='popup-title'>" + city.name + "</div>";
+  if (city.modern) h += "<div class='popup-modern'>Oggi: " + city.modern + "</div>";
+  // Badges
+  h += "<div class='popup-badges'>";
+  h += "<span class='popup-badge' style='color:" + civ.color + ";border-color:" + civ.color + "40'>" + civ.label + "</span>";
+  if (city.tipo) h += "<span class='popup-badge' style='color:#8a7050;border-color:#3a2a0a'>" + city.tipo.replace("_"," ") + "</span>";
+  if (city.unesco) h += "<span class='popup-badge' style='color:#a0c0e0;border-color:#2a4060'>UNESCO</span>";
+  h += "</div>";
+  // Immagine slot (iniettata via JS)
+  if (city.wiki) {
+    h += "<div id='wslot-" + uid + "'><div style='font-size:0.6rem;color:#4a3820;font-style:italic;margin-bottom:4px;'>Caricamento immagine…</div></div>";
+  }
+  h += "<div class='popup-desc'>" + city.desc + "</div>";
+  h += "<div class='popup-era'>" + city.era + "</div>";
+  if (city.museum) h += "<div class='popup-museum'>" + city.museum + "</div>";
+  // Eventi locali
+  var localEvts = getCityEvents(uid);
+  if (localEvts.length > 0) {
+    h += "<div class='popup-events'>";
+    h += "<div class='popup-events-title'>Eventi storici</div>";
+    localEvts.forEach(function(e) {
+      h += "<div class='popup-event-item'>";
+      h += "<span>" + formatYear(e.anno) + " — " + (TIPO_ICONS[e.tipo]||"") + "</span> " + e.titolo;
+      h += "</div>";
+    });
+    h += "</div>";
+  }
+  if (city.wiki) {
+    h += "<div class='popup-wiki'><a href='https://it.wikipedia.org/wiki/" + encodeURIComponent(city.wiki.replace(/_/g," ")) + "' target='_blank'>Wikipedia →</a></div>";
+  }
+  return h;
+}
+
+function fetchWikiImage(cityId, cityWiki) {
+  if (!cityWiki) return;
+  fetch("https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(cityWiki))
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var slot = document.getElementById("wslot-" + cityId);
+      if (!slot) return;
+      if (data.thumbnail && data.thumbnail.source) {
+        var img = document.createElement("img");
+        img.className = "popup-img";
+        img.src = data.thumbnail.source;
+        img.alt = "immagine";
+        slot.innerHTML = "";
+        slot.appendChild(img);
+      } else {
+        slot.innerHTML = "";
+      }
+    })
+    .catch(function() {
+      var slot = document.getElementById("wslot-" + cityId);
+      if (slot) slot.innerHTML = "";
+    });
+}
+
+// ── MARKERS ───────────────────────────────────────────────────────────────────
+function createMarker(city) {
+  var civ = CIVS[city.civ] || { label: city.civ, color: "#888" };
+  var svg = "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'>"
+          + "<circle cx='8' cy='8' r='6' fill='" + civ.color + "' fill-opacity='0.88' stroke='rgba(255,255,255,0.45)' stroke-width='1'/>"
+          + "</svg>";
+  var icon = L.divIcon({ className:"", html:svg, iconSize:[16,16], iconAnchor:[8,8] });
+  var marker = L.marker([city.lat, city.lng], { icon:icon });
+  marker.bindPopup(makePopup(city, civ), { maxWidth:270 });
+  marker.on("popupopen", function() { fetchWikiImage(city.id, city.wiki); });
+  return marker;
+}
+
+CITIES.forEach(function(city) {
+  var m = createMarker(city);
+  allMarkers.push({ marker:m, civ:city.civ, city:city });
+  layerGroup.addLayer(m);
+});
+
+// ── VISIBILITÀ ────────────────────────────────────────────────────────────────
+function updateVisibility() {
+  var visible = 0;
+  allMarkers.forEach(function(item) {
+    var show = !hiddenCivs[item.civ];
+    if (sliderActive) show = show && isActive(item.city, currentYear);
+    if (show) {
+      if (!layerGroup.hasLayer(item.marker)) layerGroup.addLayer(item.marker);
+      visible++;
+    } else {
+      if (layerGroup.hasLayer(item.marker)) layerGroup.removeLayer(item.marker);
+    }
+  });
+  // Aggiorna contatori legenda
+  Object.keys(CIVS).forEach(function(key) {
+    var el = document.getElementById("cnt-" + key);
+    if (!el) return;
+    var n = allMarkers.filter(function(m) {
+      return m.civ === key && (!sliderActive || isActive(m.city, currentYear));
+    }).length;
+    el.textContent = "(" + n + ")";
+  });
+  document.getElementById("header-stats").textContent =
+    visible + " citt\u00e0 visibili" + (sliderActive ? " nel " + formatYear(currentYear) : "");
+}
+
+// ── LEGENDA ───────────────────────────────────────────────────────────────────
+var legend = L.control({ position:"bottomright" });
+legend.onAdd = function() {
+  var div = L.DomUtil.create("div", "legend");
+  div.innerHTML = "<h4>Civilt\u00e0</h4>";
+  Object.keys(CIVS).forEach(function(key) {
+    var civ = CIVS[key];
+    var count = CITIES.filter(function(c) { return c.civ === key; }).length;
+    var item = document.createElement("div");
+    item.className = "legend-item";
+    item.title = civ.desc;
+    item.innerHTML = "<div class='legend-dot' style='background:" + civ.color + "'></div>"
+      + "<span>" + civ.label + " <span id='cnt-" + key + "' style='color:#4a3820'>(" + count + ")</span></span>";
+    item.addEventListener("click", function() {
+      if (hiddenCivs[key]) { delete hiddenCivs[key]; item.classList.remove("dim"); }
+      else { hiddenCivs[key] = true; item.classList.add("dim"); }
+      updateVisibility();
+    });
+    div.appendChild(item);
+  });
+  var footer = document.createElement("div");
+  footer.style.cssText = "margin-top:7px;padding-top:6px;border-top:1px solid #3a2a0a;";
+  footer.innerHTML = "<span style='font-size:0.6rem;color:#8a7050;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;'>Mostra tutte</span>";
+  footer.querySelector("span").addEventListener("click", function() {
+    hiddenCivs = {};
+    document.querySelectorAll(".legend-item").forEach(function(el) { el.classList.remove("dim"); });
+    updateVisibility();
+  });
+  div.appendChild(footer);
+  return div;
+};
+legend.addTo(map);
+</script>
+</body>
+</html>
