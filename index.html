@@ -12,6 +12,7 @@
 <script src="data/cities.js"></script>
 <script src="data/rulers.js"></script>
 <script src="data/routes.js"></script>
+<script src="data/battles.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:"Georgia",serif; background:#1a1208; color:#e8d9b0;
@@ -179,6 +180,31 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 .route-popup-desc  { font-size:0.65rem; color:#8a7050; line-height:1.5;
   margin-top:5px; padding-top:5px; border-top:1px solid #2a1a00; }
 .route-popup-fonte { font-size:0.6rem; color:#4a3010; font-style:italic; margin-top:4px; }
+/* BATTAGLIE */
+.battle-popup-title  { font-size:0.9rem; color:#e74c3c; margin-bottom:2px; }
+.battle-popup-anno   { font-size:0.62rem; color:#6a5535; font-style:italic; margin-bottom:5px; }
+.battle-popup-fazioni { margin-bottom:6px; }
+.battle-popup-fazione { font-size:0.68rem; color:#c8b890; padding:2px 0;
+  display:flex; gap:5px; align-items:baseline; }
+.battle-popup-ruolo  { font-size:0.6rem; padding:1px 5px; border-radius:2px;
+  border:1px solid; letter-spacing:0.04em; flex-shrink:0; }
+.ruolo-vincitore  { color:#27ae60; border-color:#27ae6050; }
+.ruolo-sconfitto  { color:#e74c3c; border-color:#e74c3c50; }
+.ruolo-contendente{ color:#f39c12; border-color:#f39c1250; }
+.battle-popup-esito   { font-size:0.68rem; color:#d4a843; margin-bottom:5px;
+  padding:4px 7px; background:rgba(212,168,67,0.08); border-radius:2px;
+  border-left:2px solid #d4a843; line-height:1.4; }
+.battle-popup-desc    { font-size:0.68rem; color:#8a7050; line-height:1.5; margin-bottom:5px; }
+.battle-popup-sig     { font-size:0.63rem; color:#6a7585; line-height:1.4;
+  font-style:italic; border-top:1px solid #2a1a00; padding-top:4px; margin-top:4px; }
+.battle-popup-fonte   { font-size:0.6rem; color:#4a3010; margin-top:4px; }
+/* Toggle battaglie */
+#toggle-battles {
+  background:none; border:1px solid #3a2a0a; color:#8a7050;
+  font-family:"Georgia",serif; font-size:0.6rem; padding:3px 9px; cursor:pointer;
+  border-radius:2px; white-space:nowrap; transition:all 0.15s; flex-shrink:0;
+}
+#toggle-battles.active { border-color:#e74c3c; color:#e74c3c; background:rgba(231,76,60,0.1); }
 /* Toggle rotte */
 #toggle-routes {
   background:none; border:1px solid #3a2a0a; color:#8a7050;
@@ -247,6 +273,7 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 
 <div id="period-bar">
   <button id="btn-all-periods" class="active" onclick="selectPeriod(null,this)">Tutte le epoche</button>
+  <button id="toggle-battles" onclick="toggleBattles(this)" title="Mostra/nascondi battaglie e assedi">⚔ Battaglie</button>
   <button id="toggle-routes" onclick="toggleRoutes(this)" title="Mostra/nascondi le rotte commerciali">⚓ Rotte commerciali</button>
 </div>
 
@@ -354,6 +381,7 @@ function selectPeriod(p, btn) {
     updateVisibility();
     renderRulers(null);
     renderRoutes(null);
+    renderBattles(null);
   }
 }
 
@@ -394,6 +422,7 @@ function onSlider(val) {
   updateVisibility();
   renderRulers(currentYear);
   renderRoutes(currentYear);
+  renderBattles(currentYear);
 }
 
 function formatYear(y) {
@@ -562,6 +591,73 @@ function updateVisibility() {
   });
   document.getElementById("header-stats").textContent =
     visible + " città visibili" + (sliderActive ? " nel " + formatYear(currentYear) : "");
+}
+
+// ── BATTAGLIE ────────────────────────────────────────────────────────────────
+var battleLayer = L.layerGroup();
+var battlesVisible = false;
+
+function battleSVG(tipo) {
+  // Spada incrociata per battaglia, torre per assedio
+  if (tipo === "assedio") {
+    return "<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'>"
+      + "<polygon points='11,1 21,21 1,21' fill='#c0392b' fill-opacity='0.9' stroke='#fff' stroke-width='1.2'/>"
+      + "<text x='11' y='17' text-anchor='middle' font-size='10' fill='#fff'>🏰</text>"
+      + "</svg>";
+  }
+  return "<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22' viewBox='0 0 22 22'>"
+    + "<polygon points='11,1 21,21 1,21' fill='#e74c3c' fill-opacity='0.92' stroke='#fff' stroke-width='1.2'/>"
+    + "<text x='11' y='17' text-anchor='middle' font-size='10' fill='#fff'>⚔</text>"
+    + "</svg>";
+}
+
+function makeBattlePopup(b) {
+  var h = "";
+  h += "<div class='battle-popup-title'>" + b.nome + "</div>";
+  h += "<div class='battle-popup-anno'>" + formatYear(b.anno) + "</div>";
+  h += "<div class='battle-popup-fazioni'>";
+  b.fazioni.forEach(function(f) {
+    h += "<div class='battle-popup-fazione'>"
+       + "<span class='battle-popup-ruolo ruolo-" + f.ruolo + "'>" + f.ruolo + "</span>"
+       + f.nome
+       + "</div>";
+  });
+  h += "</div>";
+  h += "<div class='battle-popup-esito'>" + b.esito + "</div>";
+  h += "<div class='battle-popup-desc'>" + b.desc + "</div>";
+  if (b.significato) h += "<div class='battle-popup-sig'>" + b.significato + "</div>";
+  if (b.fonte) h += "<div class='battle-popup-fonte'>Fonte: " + b.fonte + "</div>";
+  return h;
+}
+
+function renderBattles(year) {
+  battleLayer.clearLayers();
+  if (!battlesVisible) return;
+  BATTLES.forEach(function(b) {
+    var show = (year === null) || (Math.abs(b.anno - year) <= 150);
+    if (!show) return;
+    var opacity = year === null ? 1 : Math.max(0.3, 1 - Math.abs(b.anno - year) / 150);
+    var icon = L.divIcon({
+      className: "",
+      html: "<div style='opacity:" + opacity + "'>" + battleSVG(b.tipo) + "</div>",
+      iconSize: [22, 22],
+      iconAnchor: [11, 22]
+    });
+    var marker = L.marker([b.lat, b.lng], { icon: icon });
+    marker.bindPopup(makeBattlePopup(b), { maxWidth: 300 });
+    battleLayer.addLayer(marker);
+  });
+}
+
+function toggleBattles(btn) {
+  battlesVisible = !battlesVisible;
+  btn.classList.toggle("active", battlesVisible);
+  if (battlesVisible) {
+    battleLayer.addTo(map);
+  } else {
+    map.removeLayer(battleLayer);
+  }
+  renderBattles(sliderActive ? currentYear : null);
 }
 
 // ── ROTTE COMMERCIALI ────────────────────────────────────────────────────────
