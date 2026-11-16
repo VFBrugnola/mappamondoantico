@@ -13,6 +13,7 @@
 <script src="data/rulers.js"></script>
 <script src="data/routes.js"></script>
 <script src="data/battles.js"></script>
+<script src="data/archaeology.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:"Georgia",serif; background:#1a1208; color:#e8d9b0;
@@ -180,6 +181,24 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 .route-popup-desc  { font-size:0.65rem; color:#8a7050; line-height:1.5;
   margin-top:5px; padding-top:5px; border-top:1px solid #2a1a00; }
 .route-popup-fonte { font-size:0.6rem; color:#4a3010; font-style:italic; margin-top:4px; }
+/* ARCHEOLOGIA */
+.arch-popup-title  { font-size:0.9rem; color:#a0d0a0; margin-bottom:1px; }
+.arch-popup-chi    { font-size:0.63rem; color:#6a8560; font-style:italic; margin-bottom:5px; }
+.arch-popup-trova  { margin-bottom:5px; }
+.arch-popup-trovato { border-bottom:1px solid #1a2a1a; padding-bottom:5px; margin-bottom:5px; }
+.arch-popup-trovato:last-child { border-bottom:none; padding-bottom:0; margin-bottom:0; }
+.arch-popup-trovato-nome { font-size:0.72rem; color:#c8b890; }
+.arch-popup-trovato-museo { font-size:0.6rem; color:#4a6040; margin-top:1px; }
+.arch-popup-trovato-nota { font-size:0.63rem; color:#8a9880; line-height:1.4; margin-top:2px; }
+.arch-popup-desc   { font-size:0.65rem; color:#8a7050; line-height:1.5;
+  margin-top:5px; padding-top:5px; border-top:1px solid #1a2a1a; }
+/* Toggle archeologia */
+#toggle-arch {
+  background:none; border:1px solid #2a4030; color:#6a8560;
+  font-family:"Georgia",serif; font-size:0.6rem; padding:3px 9px; cursor:pointer;
+  border-radius:2px; white-space:nowrap; transition:all 0.15s; flex-shrink:0;
+}
+#toggle-arch.active { border-color:#a0d0a0; color:#a0d0a0; background:rgba(160,208,160,0.1); }
 /* BATTAGLIE */
 .battle-popup-title  { font-size:0.9rem; color:#e74c3c; margin-bottom:2px; }
 .battle-popup-anno   { font-size:0.62rem; color:#6a5535; font-style:italic; margin-bottom:5px; }
@@ -294,6 +313,7 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 
 <div id="period-bar">
   <button id="btn-all-periods" class="active" onclick="selectPeriod(null,this)">Tutte le epoche</button>
+  <button id="toggle-arch" onclick="toggleArch(this)" title="Mostra/nascondi scoperte archeologiche">⛏ Archeologia</button>
   <button id="toggle-battles" onclick="toggleBattles(this)" title="Mostra/nascondi battaglie e assedi">⚔ Battaglie</button>
   <button id="toggle-routes" onclick="toggleRoutes(this)" title="Mostra/nascondi le rotte commerciali">⚓ Rotte commerciali</button>
 </div>
@@ -612,6 +632,61 @@ function updateVisibility() {
   });
   document.getElementById("header-stats").textContent =
     visible + " città visibili" + (sliderActive ? " nel " + formatYear(currentYear) : "");
+}
+
+// ── ARCHEOLOGIA ──────────────────────────────────────────────────────────────
+var archLayer = L.layerGroup();
+var archVisible = false;
+
+function archSVG() {
+  return "<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'>"
+    + "<rect x='2' y='2' width='14' height='14' rx='2'"
+    + " fill='#1a3020' fill-opacity='0.92' stroke='#a0d0a0' stroke-width='1.5'/>"
+    + "<text x='9' y='13.5' text-anchor='middle' font-size='10' fill='#a0d0a0'>⛏</text>"
+    + "</svg>";
+}
+
+function makeArchPopup(a) {
+  var h = "";
+  h += "<div class='arch-popup-title'>" + a.nome + "</div>";
+  h += "<div class='arch-popup-chi'>Scoperto nel " + a.scoperta.anno + " da " + a.scoperta.chi
+     + "<br><span style='color:#3a5030'>" + a.scoperta.istituzione + "</span></div>";
+  if (a.trova && a.trova.length) {
+    h += "<div class='arch-popup-trova'>";
+    a.trova.forEach(function(t) {
+      h += "<div class='arch-popup-trovato'>";
+      h += "<div class='arch-popup-trovato-nome'>📦 " + t.nome + "</div>";
+      if (t.museo) h += "<div class='arch-popup-trovato-museo'>→ " + t.museo + "</div>";
+      if (t.nota) h += "<div class='arch-popup-trovato-nota'>" + t.nota + "</div>";
+      h += "</div>";
+    });
+    h += "</div>";
+  }
+  h += "<div class='arch-popup-desc'>" + a.desc + "</div>";
+  if (a.wiki) {
+    h += "<div style='margin-top:5px'><a href='https://it.wikipedia.org/wiki/"
+       + encodeURIComponent(a.wiki) + "' target='_blank'"
+       + " style='font-size:0.62rem;color:#5a80a0'>Wikipedia →</a></div>";
+  }
+  return h;
+}
+
+function renderArch() {
+  archLayer.clearLayers();
+  if (!archVisible) return;
+  ARCHAEOLOGY.forEach(function(a) {
+    var icon = L.divIcon({ className:"", html:archSVG(), iconSize:[18,18], iconAnchor:[9,9] });
+    var marker = L.marker([a.lat, a.lng], { icon:icon });
+    marker.bindPopup(makeArchPopup(a), { maxWidth:310 });
+    archLayer.addLayer(marker);
+  });
+}
+
+function toggleArch(btn) {
+  archVisible = !archVisible;
+  btn.classList.toggle("active", archVisible);
+  if (archVisible) { archLayer.addTo(map); renderArch(); }
+  else { map.removeLayer(archLayer); }
 }
 
 // ── BATTAGLIE ────────────────────────────────────────────────────────────────
