@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Città Antiche del Mediterraneo</title>
+<title>Vicino Oriente Antico</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="data/civilizations.js"></script>
 <script src="data/periods.js"></script>
 <script src="data/events.js"></script>
 <script src="data/cities.js"></script>
+<script src="data/rulers.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:"Georgia",serif; background:#1a1208; color:#e8d9b0;
@@ -23,9 +24,62 @@ header h1 { font-size:0.95rem; letter-spacing:0.1em; text-transform:uppercase;
             color:#d4a843; font-weight:normal; }
 header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 
-/* MAP */
-#map { flex:1; width:100%; min-height:0; }
+/* MAIN AREA: mappa + pannello sovrani */
+#main-area { flex:1; display:flex; min-height:0; }
+#map { flex:1; min-width:0; }
 .leaflet-container { background:#0d1a2e; }
+
+/* RULERS PANEL */
+#rulers-panel {
+  width:230px; flex-shrink:0;
+  background:#070503; border-left:1px solid #3a2a0a;
+  display:flex; flex-direction:column; overflow:hidden;
+}
+#rulers-panel-header {
+  padding:7px 10px 5px;
+  border-bottom:1px solid #2a1a00;
+  flex-shrink:0;
+}
+#rulers-panel-header h3 {
+  font-size:0.65rem; letter-spacing:0.08em; text-transform:uppercase;
+  color:#d4a843; font-weight:normal;
+}
+#rulers-year-display {
+  font-size:0.6rem; color:#6a5535; font-style:italic; margin-top:1px;
+}
+#rulers-list {
+  flex:1; overflow-y:auto; padding:5px 0;
+}
+#rulers-list::-webkit-scrollbar { width:4px; }
+#rulers-list::-webkit-scrollbar-thumb { background:#3a2a0a; border-radius:2px; }
+
+.ruler-state-group { margin-bottom:1px; }
+.ruler-state-name {
+  font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:#5a4020; padding:4px 10px 2px;
+  border-top:1px solid #1a1200;
+}
+.ruler-entry {
+  padding:3px 10px 3px 14px;
+  display:flex; align-items:flex-start; gap:5px;
+}
+.ruler-dot {
+  width:5px; height:5px; border-radius:50%; flex-shrink:0; margin-top:4px;
+}
+.ruler-info { flex:1; min-width:0; }
+.ruler-name {
+  font-size:0.68rem; color:#c8b890; line-height:1.2;
+}
+.ruler-dates {
+  font-size:0.58rem; color:#4a3010; font-style:italic;
+}
+.ruler-note {
+  font-size:0.58rem; color:#6a5535; line-height:1.3; margin-top:1px;
+}
+#rulers-empty {
+  font-size:0.65rem; color:#4a3820; font-style:italic;
+  padding:12px 10px; text-align:center; line-height:1.5;
+}
 
 /* PERIOD BAR */
 #period-bar { flex-shrink:0; background:#0a0805; border-top:1px solid #2a1a00;
@@ -109,7 +163,6 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 .popup-event-item span { color:#a08040; font-size:0.6rem; }
 .popup-wiki { margin-top:5px; }
 .popup-wiki a { font-size:0.62rem; color:#5a80a0; }
-
 .leaflet-control-zoom a { background:#0e0a05 !important; color:#d4a843 !important;
   border-color:#5c3d0a !important; }
 </style>
@@ -117,21 +170,37 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 <body>
 <header>
   <div>
-    <h1>Città Antiche del Mediterraneo</h1>
-    <p id="header-stats">IX millennio a.C. &ndash; V sec. d.C.</p>
+    <h1>Vicino Oriente Antico</h1>
+    <p id="header-stats">3500 – 300 a.C. &bull; Età del Bronzo e del Ferro</p>
   </div>
   <div style="font-size:0.6rem;color:#5a4020;font-style:italic;text-align:right;">
-    Clicca le città &bull; Filtra per civiltà o periodo
+    Clicca le città &bull; Usa il cursore per navigare nel tempo
   </div>
 </header>
-<div id="map"></div>
+
+<div id="main-area">
+  <div id="map"></div>
+  <!-- PANNELLO SOVRANI -->
+  <div id="rulers-panel">
+    <div id="rulers-panel-header">
+      <h3>Sovrani attivi</h3>
+      <div id="rulers-year-display">muovi il cursore temporale</div>
+    </div>
+    <div id="rulers-list">
+      <div id="rulers-empty">Usa il cursore temporale<br>per vedere i sovrani<br>di ogni stato</div>
+    </div>
+  </div>
+</div>
+
 <div id="period-bar">
   <button id="btn-all-periods" class="active" onclick="selectPeriod(null,this)">Tutte le epoche</button>
 </div>
+
 <div id="timeline-bar">
-  <input type="range" id="year-slider" min="-3500" max="500" step="25" value="-1200" oninput="onSlider(this.value)">
+  <input type="range" id="year-slider" min="-3500" max="-300" step="10" value="-1200" oninput="onSlider(this.value)">
   <div id="year-label">&#8212;</div>
 </div>
+
 <div id="event-panel">
   <div id="event-dot"></div>
   <div id="event-body">
@@ -144,11 +213,11 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 
 <script>
 // ── MAPPA ────────────────────────────────────────────────────────────────────
-var map = L.map("map", { center:[35,28], zoom:4, minZoom:3, maxZoom:10 });
+var map = L.map("map", { center:[33, 40], zoom:5, minZoom:3, maxZoom:10 });
 var tileProviders = [
   { url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", opts:{ attribution:"&copy; Esri", maxZoom:18 } },
-  { url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png", opts:{ attribution:"&copy; OpenStreetMap contributors", maxZoom:19 } },
-  { url:"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", opts:{ attribution:"&copy; CARTO", subdomains:"abcd", maxZoom:18 } }
+  { url:"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", opts:{ attribution:"&copy; CARTO", subdomains:"abcd", maxZoom:18 } },
+  { url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png", opts:{ attribution:"&copy; OpenStreetMap contributors", maxZoom:19 } }
 ];
 var tileIdx=0, baseLayer=null;
 function tryNextTile() {
@@ -179,6 +248,28 @@ var TIPO_ICONS = {
   culturale: "📚", scientifico: "🔭"
 };
 
+// ── STATI → ETICHETTE E COLORI ────────────────────────────────────────────────
+var STATO_INFO = {
+  egitto:         { label:"Egitto",         colore:"#f1c40f" },
+  ittiti:         { label:"Ittiti",         colore:"#a0522d" },
+  assiria:        { label:"Assiria",        colore:"#c07030" },
+  babilonia:      { label:"Babilonia",      colore:"#8e44ad" },
+  mitanni:        { label:"Mittani",        colore:"#16a085" },
+  ugarit:         { label:"Ugarit",         colore:"#c8a000" },
+  elam:           { label:"Elam",           colore:"#e74c3c" },
+  karkemish:      { label:"Karkemish",      colore:"#795548" },
+  urartu:         { label:"Urartu",         colore:"#9b59b6" },
+  tiro:           { label:"Tiro",           colore:"#e67e22" },
+  biblo:          { label:"Biblo",          colore:"#f39c12" },
+  damasco:        { label:"Damasco",        colore:"#27ae60" },
+  samal:          { label:"Sam'al",         colore:"#2ecc71" },
+  israele_unito:  { label:"Israele unito",  colore:"#3498db" },
+  israele:        { label:"Israele (Nord)", colore:"#2980b9" },
+  giuda:          { label:"Giuda (Sud)",    colore:"#1abc9c" },
+  moab:           { label:"Moab",           colore:"#95a5a6" },
+  edom:           { label:"Edom",           colore:"#7f8c8d" }
+};
+
 // ── PERIODO BUTTONS ───────────────────────────────────────────────────────────
 var periodBar = document.getElementById("period-bar");
 PERIODS.forEach(function(p) {
@@ -203,10 +294,11 @@ function selectPeriod(p, btn) {
   } else {
     sliderActive = false;
     document.getElementById("year-slider").min = -3500;
-    document.getElementById("year-slider").max = 500;
+    document.getElementById("year-slider").max = -300;
     document.getElementById("year-label").textContent = "—";
     document.getElementById("event-panel").classList.remove("visible");
     updateVisibility();
+    renderRulers(null);
   }
 }
 
@@ -224,14 +316,14 @@ function onSlider(val) {
   currentYear = parseInt(val);
   sliderActive = true;
   document.getElementById("year-label").textContent = formatYear(currentYear);
-  // Trova l'evento globale più vicino entro 75 anni
+  // Trova l'evento globale più vicino entro 100 anni
   var nearest = null, bestDist = 999999;
   EVENTS.forEach(function(e) {
     if (e.livello !== "globale") return;
     var d = Math.abs(e.anno - currentYear);
     if (d < bestDist) { bestDist = d; nearest = e; }
   });
-  if (nearest && bestDist <= 75) {
+  if (nearest && bestDist <= 100) {
     document.getElementById("event-dot").style.display = "block";
     document.getElementById("event-title").textContent = nearest.titolo;
     document.getElementById("event-year-label").textContent = formatYear(nearest.anno);
@@ -245,6 +337,7 @@ function onSlider(val) {
     document.getElementById("event-tipo").textContent = "";
   }
   updateVisibility();
+  renderRulers(currentYear);
 }
 
 function formatYear(y) {
@@ -253,6 +346,59 @@ function formatYear(y) {
   return y + " d.C.";
 }
 function isActive(city, year) { return city.start <= year && city.end >= year; }
+
+// ── PANNELLO SOVRANI ──────────────────────────────────────────────────────────
+function renderRulers(year) {
+  var list = document.getElementById("rulers-list");
+  var ydisp = document.getElementById("rulers-year-display");
+  if (year === null) {
+    list.innerHTML = "<div id='rulers-empty'>Usa il cursore temporale<br>per vedere i sovrani<br>di ogni stato</div>";
+    ydisp.textContent = "muovi il cursore temporale";
+    return;
+  }
+  ydisp.textContent = "attivi nel " + formatYear(year);
+  // Filtra sovrani attivi
+  var active = RULERS.filter(function(r) {
+    return r.inizio <= year && r.fine >= year;
+  });
+  if (active.length === 0) {
+    list.innerHTML = "<div id='rulers-empty'>Nessun sovrano documentato<br>per questo anno</div>";
+    return;
+  }
+  // Raggruppa per stato
+  var byStato = {};
+  active.forEach(function(r) {
+    if (!byStato[r.stato]) byStato[r.stato] = [];
+    byStato[r.stato].push(r);
+  });
+  // Ordine preferenziale degli stati (grandi potenze prima)
+  var statiOrder = ["egitto","ittiti","assiria","babilonia","mitanni","persiana",
+                    "ugarit","elam","karkemish","urartu","tiro","biblo","damasco",
+                    "samal","israele_unito","israele","giuda","moab","edom"];
+  var statiAttivi = Object.keys(byStato).sort(function(a,b) {
+    var ia = statiOrder.indexOf(a), ib = statiOrder.indexOf(b);
+    if (ia === -1) ia = 99; if (ib === -1) ib = 99;
+    return ia - ib;
+  });
+  var html = "";
+  statiAttivi.forEach(function(stato) {
+    var info = STATO_INFO[stato] || { label: stato, colore: "#888" };
+    html += "<div class='ruler-state-group'>";
+    html += "<div class='ruler-state-name'>" + info.label + "</div>";
+    byStato[stato].forEach(function(r) {
+      html += "<div class='ruler-entry'>";
+      html += "<div class='ruler-dot' style='background:" + info.colore + "'></div>";
+      html += "<div class='ruler-info'>";
+      html += "<div class='ruler-name'>" + r.nome + "</div>";
+      html += "<div class='ruler-dates'>" + formatYear(r.inizio) + " – " + formatYear(r.fine) + "</div>";
+      if (r.note) html += "<div class='ruler-note'>" + r.note + "</div>";
+      html += "</div>";
+      html += "</div>";
+    });
+    html += "</div>";
+  });
+  list.innerHTML = html;
+}
 
 // ── POPUP ─────────────────────────────────────────────────────────────────────
 function getCityEvents(cityId) {
@@ -266,20 +412,17 @@ function makePopup(city, civ) {
   var h = "";
   h += "<div class='popup-title'>" + city.name + "</div>";
   if (city.modern) h += "<div class='popup-modern'>Oggi: " + city.modern + "</div>";
-  // Badges
   h += "<div class='popup-badges'>";
   h += "<span class='popup-badge' style='color:" + civ.color + ";border-color:" + civ.color + "40'>" + civ.label + "</span>";
   if (city.tipo) h += "<span class='popup-badge' style='color:#8a7050;border-color:#3a2a0a'>" + city.tipo.replace("_"," ") + "</span>";
   if (city.unesco) h += "<span class='popup-badge' style='color:#a0c0e0;border-color:#2a4060'>UNESCO</span>";
   h += "</div>";
-  // Immagine slot (iniettata via JS)
   if (city.wiki) {
     h += "<div id='wslot-" + uid + "'><div style='font-size:0.6rem;color:#4a3820;font-style:italic;margin-bottom:4px;'>Caricamento immagine…</div></div>";
   }
   h += "<div class='popup-desc'>" + city.desc + "</div>";
   h += "<div class='popup-era'>" + city.era + "</div>";
   if (city.museum) h += "<div class='popup-museum'>" + city.museum + "</div>";
-  // Eventi locali
   var localEvts = getCityEvents(uid);
   if (localEvts.length > 0) {
     h += "<div class='popup-events'>";
@@ -353,7 +496,6 @@ function updateVisibility() {
       if (layerGroup.hasLayer(item.marker)) layerGroup.removeLayer(item.marker);
     }
   });
-  // Aggiorna contatori legenda
   Object.keys(CIVS).forEach(function(key) {
     var el = document.getElementById("cnt-" + key);
     if (!el) return;
@@ -363,17 +505,18 @@ function updateVisibility() {
     el.textContent = "(" + n + ")";
   });
   document.getElementById("header-stats").textContent =
-    visible + " citt\u00e0 visibili" + (sliderActive ? " nel " + formatYear(currentYear) : "");
+    visible + " città visibili" + (sliderActive ? " nel " + formatYear(currentYear) : "");
 }
 
 // ── LEGENDA ───────────────────────────────────────────────────────────────────
-var legend = L.control({ position:"bottomright" });
+var legend = L.control({ position:"bottomleft" });
 legend.onAdd = function() {
   var div = L.DomUtil.create("div", "legend");
-  div.innerHTML = "<h4>Civilt\u00e0</h4>";
+  div.innerHTML = "<h4>Civiltà</h4>";
   Object.keys(CIVS).forEach(function(key) {
     var civ = CIVS[key];
     var count = CITIES.filter(function(c) { return c.civ === key; }).length;
+    if (count === 0) return;
     var item = document.createElement("div");
     item.className = "legend-item";
     item.title = civ.desc;
