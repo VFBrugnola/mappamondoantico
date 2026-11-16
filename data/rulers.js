@@ -99,6 +99,13 @@ var RULERS = [
   { stato:"babilonia", nome:"Marduk-zakir-sumi",inizio:-855, fine:-819,  note:"IX sec." },
   { stato:"babilonia", nome:"Marduk-balatsu-iqbi",inizio:-819,fine:-813, note:"IX sec." },
   { stato:"babilonia", nome:"Baba-aha-iddina", inizio:-812,  fine:-812,  note:"VIII sec. ca." },
+  // ── BABILONIA NEOBABILONESE (Dinastia caldea) ───────────────
+  { stato:"babilonia", nome:"Nabopolassar",     inizio:-626,  fine:-605,  note:"Fondatore della dinastia neobabilonese; distrugge Ninive (-612) con i Medi" },
+  { stato:"babilonia", nome:"Nabucodonosor II", inizio:-605,  fine:-562,  note:"Il più grande re di Babilonia: Karkemish (-605), distrugge Gerusalemme (-587), costruisce i Giardini Pensili" },
+  { stato:"babilonia", nome:"Amel-Marduk",      inizio:-562,  fine:-560,  note:"Figlio di Nabucodonosor II; liberò Jehoiachin di Giuda dalla prigione (2 Re 25,27)" },
+  { stato:"babilonia", nome:"Neriglissar",      inizio:-560,  fine:-556,  note:"Generale di Nabucodonosor; usurpatore" },
+  { stato:"babilonia", nome:"Labashi-Marduk",   inizio:-556,  fine:-556,  note:"Regnò pochi mesi; ucciso in una congiura" },
+  { stato:"babilonia", nome:"Nabonedo",         inizio:-556,  fine:-539,  note:"Ultimo re di Babilonia; devoto del dio Sin, assente dalla città per anni; sconfitto da Ciro il Grande (-539)" },
 
   // ── MITANNI ───────────────────────────────────────────────
   { stato:"mitanni", nome:"Saushtatar",       inizio:-1450, fine:-1420, note:"XV sec., apogeo del Mitanni" },
@@ -197,5 +204,16 @@ var RULERS = [
   { stato:"moab", nome:"Mesha",               inizio:-860,  fine:-840,  note:"Metà IX sec., stele di Mesha" },
 
   // ── EDOM ──────────────────────────────────────────────────
-  { stato:"edom", nome:"Hadad",               inizio:-1000, fine:-980,  note:"Inizio X sec." }
+  { stato:"edom", nome:"Hadad",               inizio:-1000, fine:-980,  note:"Inizio X sec." },
+
+  // ── PERSIA ACHEMENIDE ─────────────────────────────────────
+  { stato:"persiana", nome:"Ciro II (il Grande)",   inizio:-559, fine:-530, note:"Fondatore dell'impero achemenide; conquista Lidia (-547), Babilonia (-539); Editto di Ciro: ritorno degli ebrei dall'esilio" },
+  { stato:"persiana", nome:"Cambise II",            inizio:-530, fine:-522, note:"Conquista l'Egitto a Pelusio (-525); muore in Siria durante la rivolta di Gaumata" },
+  { stato:"persiana", nome:"Dario I (il Grande)",   inizio:-522, fine:-486, note:"Riorganizza l'impero in satrapie; Persepoli; sconfitto a Maratona (-490)" },
+  { stato:"persiana", nome:"Serse I",               inizio:-486, fine:-465, note:"Invade la Grecia; brucia Atene (-480); sconfitto a Salamina e Platea" },
+  { stato:"persiana", nome:"Artaserse I",           inizio:-465, fine:-424, note:"Pace di Callia con Atene (-449); favorisce Neemia e Esdra" },
+  { stato:"persiana", nome:"Dario II",              inizio:-424, fine:-404, note:"Sostiene Sparta nella guerra del Peloponneso" },
+  { stato:"persiana", nome:"Artaserse II",          inizio:-404, fine:-358, note:"Il più lungo regno achemenide; respinge i Diecimila di Senofonte" },
+  { stato:"persiana", nome:"Artaserse III",         inizio:-358, fine:-338, note:"Riconquista l'Egitto (-343); assassinato da Bagoa" },
+  { stato:"persiana", nome:"Dario III",             inizio:-336, fine:-330, note:"Ultimo re achemenide; sconfitto da Alessandro a Isso (-333) e Gaugamela (-331); assassinato da Besso" }
 ];
