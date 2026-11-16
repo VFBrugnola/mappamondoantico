@@ -11,6 +11,7 @@
 <script src="data/events.js"></script>
 <script src="data/cities.js"></script>
 <script src="data/rulers.js"></script>
+<script src="data/routes.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:"Georgia",serif; background:#1a1208; color:#e8d9b0;
@@ -163,6 +164,33 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 .popup-event-item span { color:#a08040; font-size:0.6rem; }
 .popup-wiki { margin-top:5px; }
 .popup-wiki a { font-size:0.62rem; color:#5a80a0; }
+/* ROTTE */
+.route-popup-title { font-size:0.85rem; color:#d4a843; margin-bottom:3px; }
+.route-popup-tipo  { font-size:0.6rem; color:#6a5535; text-transform:uppercase;
+  letter-spacing:0.08em; margin-bottom:6px; }
+.route-popup-merci { margin-bottom:5px; }
+.route-popup-merce { display:flex; gap:6px; align-items:flex-start;
+  margin-bottom:5px; padding-bottom:5px; border-bottom:1px solid #2a1a00; }
+.route-popup-merce:last-child { border-bottom:none; margin-bottom:0; }
+.route-popup-merce-icon { font-size:1rem; flex-shrink:0; line-height:1; }
+.route-popup-merce-body { flex:1; }
+.route-popup-merce-nome { font-size:0.72rem; color:#c8b890; font-weight:bold; }
+.route-popup-merce-note { font-size:0.63rem; color:#8a7050; line-height:1.4; margin-top:1px; }
+.route-popup-desc  { font-size:0.65rem; color:#8a7050; line-height:1.5;
+  margin-top:5px; padding-top:5px; border-top:1px solid #2a1a00; }
+.route-popup-fonte { font-size:0.6rem; color:#4a3010; font-style:italic; margin-top:4px; }
+/* Toggle rotte */
+#toggle-routes {
+  background:none; border:1px solid #3a2a0a; color:#8a7050;
+  font-family:"Georgia",serif; font-size:0.6rem; padding:3px 9px; cursor:pointer;
+  border-radius:2px; white-space:nowrap; transition:all 0.15s;
+  margin-left:auto; flex-shrink:0;
+}
+#toggle-routes.active { border-color:#d4a843; color:#d4a843; background:rgba(212,168,67,0.12); }
+/* Legenda rotte */
+.legend-route-item { display:flex; align-items:center; gap:6px; margin-bottom:4px;
+  font-size:0.63rem; }
+.legend-route-line { width:22px; height:3px; flex-shrink:0; border-radius:1px; }
 .leaflet-control-zoom a { background:#0e0a05 !important; color:#d4a843 !important;
   border-color:#5c3d0a !important; }
 
@@ -219,6 +247,7 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 
 <div id="period-bar">
   <button id="btn-all-periods" class="active" onclick="selectPeriod(null,this)">Tutte le epoche</button>
+  <button id="toggle-routes" onclick="toggleRoutes(this)" title="Mostra/nascondi le rotte commerciali">⚓ Rotte commerciali</button>
 </div>
 
 <div id="timeline-bar">
@@ -324,6 +353,7 @@ function selectPeriod(p, btn) {
     document.getElementById("event-panel").classList.remove("visible");
     updateVisibility();
     renderRulers(null);
+    renderRoutes(null);
   }
 }
 
@@ -363,6 +393,7 @@ function onSlider(val) {
   }
   updateVisibility();
   renderRulers(currentYear);
+  renderRoutes(currentYear);
 }
 
 function formatYear(y) {
@@ -533,6 +564,105 @@ function updateVisibility() {
     visible + " città visibili" + (sliderActive ? " nel " + formatYear(currentYear) : "");
 }
 
+// ── ROTTE COMMERCIALI ────────────────────────────────────────────────────────
+var routeLayer = L.layerGroup();
+var routesVisible = false;
+var routePolylines = [];
+
+var TIPO_DASH = {
+  marittimo:  [8, 6],
+  terrestre:  [1, 0],
+  fluviale:   [4, 3]
+};
+var TIPO_LABEL = {
+  marittimo: "Rotta marittima",
+  terrestre: "Via terrestre",
+  fluviale:  "Via fluviale"
+};
+
+function makeRoutePopup(r) {
+  var h = "";
+  h += "<div class='route-popup-title'>" + r.nome + "</div>";
+  h += "<div class='route-popup-tipo'>" + (TIPO_LABEL[r.tipo]||r.tipo)
+     + " &bull; " + formatYear(r.periodo_min) + " – " + formatYear(r.periodo_max) + "</div>";
+  h += "<div class='route-popup-merci'>";
+  r.merci.forEach(function(m) {
+    var cat = ROUTE_CATEGORIE[m.cat] || {};
+    h += "<div class='route-popup-merce'>";
+    h += "<div class='route-popup-merce-icon'>" + (m.icona||"") + "</div>";
+    h += "<div class='route-popup-merce-body'>";
+    h += "<div class='route-popup-merce-nome'>" + m.nome
+       + " <span style='font-size:0.6rem;color:" + (cat.colore||"#888") + ";font-weight:normal;'>"
+       + (cat.label||"") + "</span></div>";
+    if (m.note) h += "<div class='route-popup-merce-note'>" + m.note + "</div>";
+    h += "</div></div>";
+  });
+  h += "</div>";
+  if (r.desc) h += "<div class='route-popup-desc'>" + r.desc + "</div>";
+  if (r.fonte) h += "<div class='route-popup-fonte'>Fonte: " + r.fonte + "</div>";
+  return h;
+}
+
+function buildRoutePolylines() {
+  routePolylines = [];
+  ROUTES.forEach(function(r) {
+    var dash = TIPO_DASH[r.tipo] || [1,0];
+    var pl = L.polyline(r.waypoints, {
+      color: r.colore,
+      weight: r.tipo === "fluviale" ? 3 : 2.5,
+      opacity: 0.75,
+      dashArray: dash.join(","),
+      lineJoin: "round"
+    });
+    pl.bindPopup(makeRoutePopup(r), { maxWidth: 290 });
+    // Freccia direzionale sull'ultima metà della rotta
+    pl.on("add", function() { addRouteArrow(r, pl); });
+    routePolylines.push({ pl: pl, route: r });
+  });
+}
+
+function addRouteArrow(r, pl) {
+  // Piccolo marker a metà rotta come etichetta
+  var mid = r.waypoints[Math.floor(r.waypoints.length / 2)];
+  var iconHtml = "<div style='background:" + r.colore + ";border-radius:3px;"
+    + "padding:1px 5px;font-size:0.58rem;color:#fff;white-space:nowrap;"
+    + "box-shadow:0 1px 4px rgba(0,0,0,0.5);font-family:Georgia,serif;opacity:0.9'>"
+    + r.merci.map(function(m){ return m.icona; }).join(" ")
+    + "</div>";
+  var labelIcon = L.divIcon({ className:"", html:iconHtml,
+    iconAnchor:[0,10], iconSize:[null,20] });
+  var lm = L.marker(mid, { icon:labelIcon, interactive:false, keyboard:false });
+  routeLayer.addLayer(lm);
+}
+
+function renderRoutes(year) {
+  routeLayer.clearLayers();
+  if (!routesVisible) return;
+  routePolylines.forEach(function(item) {
+    var r = item.route;
+    var show = (year === null) || (r.periodo_min <= year && r.periodo_max >= year);
+    if (show) {
+      routeLayer.addLayer(item.pl);
+      addRouteArrow(r, item.pl);
+    }
+  });
+}
+
+function toggleRoutes(btn) {
+  routesVisible = !routesVisible;
+  btn.classList.toggle("active", routesVisible);
+  var legendSec = document.getElementById("legend-routes-section");
+  if (legendSec) legendSec.style.display = routesVisible ? "block" : "none";
+  if (routesVisible) {
+    routeLayer.addTo(map);
+  } else {
+    map.removeLayer(routeLayer);
+  }
+  renderRoutes(sliderActive ? currentYear : null);
+}
+
+buildRoutePolylines();
+
 // ── LEGENDA ───────────────────────────────────────────────────────────────────
 var legend = L.control({ position:"bottomleft" });
 legend.onAdd = function() {
@@ -554,6 +684,21 @@ legend.onAdd = function() {
     });
     div.appendChild(item);
   });
+  // Sezione rotte commerciali
+  var routeSection = document.createElement("div");
+  routeSection.id = "legend-routes-section";
+  routeSection.style.cssText = "margin-top:8px;padding-top:7px;border-top:1px solid #3a2a0a;display:none;";
+  routeSection.innerHTML = "<h4 style='margin-bottom:5px;'>Rotte commerciali</h4>";
+  Object.keys(ROUTE_CATEGORIE).forEach(function(k) {
+    var cat = ROUTE_CATEGORIE[k];
+    var ri = document.createElement("div");
+    ri.className = "legend-route-item";
+    ri.innerHTML = "<div class='legend-route-line' style='background:" + cat.colore + "'></div>"
+      + "<span>" + cat.icona + " " + cat.label + "</span>";
+    routeSection.appendChild(ri);
+  });
+  div.appendChild(routeSection);
+
   var footer = document.createElement("div");
   footer.style.cssText = "margin-top:7px;padding-top:6px;border-top:1px solid #3a2a0a;";
   footer.innerHTML = "<span style='font-size:0.6rem;color:#8a7050;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;'>Mostra tutte</span>";
