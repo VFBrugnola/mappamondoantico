@@ -222,27 +222,48 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 
 /* ── MOBILE ─────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  body { height: 100dvh; } /* dynamic viewport height: esclude chrome browser */
-  header { padding:5px 10px; }
-  header h1 { font-size:0.78rem; }
-  header p { display:none; }
-  /* Nascondi il pannello sovrani su mobile: troppo stretto */
-  #rulers-panel { display:none; }
-  /* Period bar: wrappa su più righe */
-  #period-bar { flex-wrap:wrap; padding:4px 8px; gap:4px; }
-  .period-btn { font-size:0.58rem; padding:3px 7px; }
-  #btn-all-periods { font-size:0.58rem; padding:3px 7px; }
-  /* Timeline */
-  #timeline-bar { padding:6px 10px; gap:7px; }
-  #year-label { font-size:0.78rem; min-width:80px; }
-  /* Event panel */
-  #event-panel { padding:5px 10px; }
-  #event-desc { display:none; } /* troppo testo su schermi piccoli */
-}
-/* Altezze molto basse (telefono in landscape) */
-@media (max-height: 500px) {
-  #period-bar { display:none; }
+  /* Fallback per browser senza dvh, poi sovrascrittura con dvh */
+  body { height: 100vh; height: 100dvh; overflow: hidden; }
+
+  /* Header compattato */
   header { padding:4px 10px; }
+  header h1 { font-size:0.75rem; }
+  header p  { display:none; }
+  header > div:last-child { display:none; }
+
+  /* Niente pannello sovrani */
+  #rulers-panel { display:none; }
+
+  /* Period bar: scroll orizzontale su una riga sola — NON wrappa */
+  #period-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 8px;
+    gap: 4px;
+    scrollbar-width: none;
+  }
+  #period-bar::-webkit-scrollbar { display: none; }
+  .period-btn      { font-size:0.56rem; padding:3px 7px; }
+  #btn-all-periods { font-size:0.56rem; padding:3px 7px; }
+  #toggle-battles  { font-size:0.56rem; padding:3px 7px; }
+  #toggle-routes   { font-size:0.56rem; padding:3px 7px; margin-left:0; }
+
+  /* Timeline */
+  #timeline-bar { padding:5px 10px; gap:6px; }
+  #year-label   { font-size:0.8rem; min-width:76px; }
+
+  /* Event panel: solo titolo e anno */
+  #event-panel  { padding:4px 10px; min-height:34px; }
+  #event-desc, #event-tipo { display:none; }
+}
+
+/* Landscape molto basso */
+@media (max-height: 480px) {
+  #period-bar { display:none; }
+  #event-panel { display:none !important; }
+  header { padding:3px 10px; }
 }
 </style>
 </head>
