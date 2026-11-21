@@ -4,6 +4,7 @@ Dashboard di studio personale sul Vicino Oriente antico nell'Età del Bronzo e d
 
 ## Funzionalità
 
+- **Confini dei regni** che cambiano con l’anno scelto, su una cartina piatta (terre, fiumi e laghi, senza confini moderni); si può tornare alla cartina stradale
 - **Mappa** delle città con filtro per civiltà, epoche, slider temporale, scoperte archeologiche, battaglie e rotte commerciali
 - **Sovrani attivi** nell'anno scelto, raggruppati per stato
 - **Linea del tempo sinottica**: in alto le epoche, sotto per ogni regione (Bassa e Alta Mesopotamia, Siria e Levante, Anatolia, Egitto) la sua periodizzazione seguita dai sovrani dei suoi stati, poi eventi e battaglie
@@ -22,7 +23,10 @@ Dashboard di studio personale sul Vicino Oriente antico nell'Età del Bronzo e d
 - E.H. Cline, *1177 a.C.*: sovrani della tarda Età del Bronzo
 - E.H. Cline, *La sopravvivenza delle civiltà*: sovrani dell'area settentrionale e meridionale, XIII – VIII sec. a.C.
 
-I dati stanno in `data/` (`periods.js`, `regional_periods.js`, `rulers.js`, `events.js`, …): mappa e linea del tempo leggono gli stessi file.
+- [Cliopatria](https://github.com/Seshat-Global-History-Databank/cliopatria) (Seshat Global History Databank), CC BY 4.0: confini dei regni. Modifiche: estratto 3500–300 a.C. per il Vicino Oriente, geometrie semplificate, nomi tradotti in italiano. I confini sono indicativi e hanno lacune (per esempio Urartu e Giuda dopo il 701 a.C.)
+- [Natural Earth](https://www.naturalearthdata.com/) (pubblico dominio): terre, fiumi e laghi della cartina piatta
+
+I dati stanno in `data/` (`periods.js`, `regional_periods.js`, `borders.js`, `basemap.js`, `rulers.js`, `events.js`, …): mappa e linea del tempo leggono gli stessi file.
 
 ## Tecnologie
 
