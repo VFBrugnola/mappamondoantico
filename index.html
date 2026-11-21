@@ -34,13 +34,11 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 /* MAIN AREA: mappa + pannello sovrani */
 #main-area { flex:1; display:flex; min-height:0; }
 #map { flex:1; min-width:0; }
-.leaflet-container { background:#0d1a2e; }
-#map.flat { background:#cfdde3; }
+.leaflet-container { background:#cfdde3; }
 /* CONFINI (Cliopatria) */
 .border-label { transform:translate(-50%,-50%); white-space:nowrap; font-family:"Georgia",serif;
   font-size:11px; font-style:italic; letter-spacing:0.04em; color:#3a2a12; pointer-events:none;
   text-shadow:0 0 3px #f5efe2, 0 0 3px #f5efe2, 0 0 6px #f5efe2; }
-#map:not(.flat) .border-label { color:#fff; text-shadow:0 0 3px #000, 0 0 6px #000; }
 .border-popup-title { font-size:0.9rem; color:#d4a843; margin-bottom:2px; }
 .border-popup-years { font-size:0.65rem; color:#8a7050; font-style:italic; margin-bottom:5px; }
 .border-popup-src { font-size:0.6rem; color:#5a4020; margin-top:5px; padding-top:4px; border-top:1px solid #2a1a00; line-height:1.4; }
@@ -48,7 +46,7 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 .borders-badge { background:rgba(14,10,5,0.85); border:1px solid #5c3d0a; border-radius:3px; padding:3px 8px;
   font-family:"Georgia",serif; font-size:0.62rem; color:#c8b890; }
 .borders-badge b { color:#d4a843; font-weight:normal; }
-#toggle-borders, #toggle-basemap { flex-shrink:0; background:none; border:1px solid #3a2a0a; color:#8a7050;
+#toggle-borders { flex-shrink:0; background:none; border:1px solid #3a2a0a; color:#8a7050;
   font-family:"Georgia",serif; font-size:0.6rem; padding:3px 9px; cursor:pointer; border-radius:2px; white-space:nowrap; }
 #toggle-borders.active { border-color:#d4a843; color:#d4a843; background:rgba(212,168,67,0.12); }
 
@@ -395,7 +393,6 @@ body.tl-full #timeline-drawer { flex:1; height:auto; }
 <div id="period-bar">
   <button id="toggle-timeline" onclick="toggleTimeline()" title="Linea del tempo sinottica: periodi e sovrani per civiltà">&#9203; Linea del tempo</button>
   <button id="toggle-borders" class="active" onclick="toggleBorders(this)" title="Mostra/nascondi i confini dei regni nell'anno scelto">▦ Confini</button>
-  <button id="toggle-basemap" onclick="setBasemap(basemapKind === 'flat' ? 'tiles' : 'flat')" title="Cambia la cartina di sfondo">🗺 Cartina: piatta</button>
   <button id="btn-all-periods" class="active" onclick="selectPeriod(null,this)">Tutte le epoche</button>
   <button id="toggle-arch" onclick="toggleArch(this)" title="Mostra/nascondi scoperte archeologiche">⛏ Archeologia</button>
   <button id="toggle-battles" onclick="toggleBattles(this)" title="Mostra/nascondi battaglie e assedi">⚔ Battaglie</button>
@@ -420,53 +417,20 @@ body.tl-full #timeline-drawer { flex:1; height:auto; }
 <script>
 // ── MAPPA ────────────────────────────────────────────────────────────────────
 var map = L.map("map", { center:[33, 40], zoom:5, minZoom:3, maxZoom:10 });
-var tileProviders = [
-  { url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}", opts:{ attribution:"&copy; Esri", maxZoom:18 } },
-  { url:"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png", opts:{ attribution:"&copy; CARTO", subdomains:"abcd", maxZoom:18 } },
-  { url:"https://tile.openstreetmap.org/{z}/{x}/{y}.png", opts:{ attribution:"&copy; OpenStreetMap contributors", maxZoom:19 } }
-];
-var tileIdx=0, baseLayer=null, basemapKind="flat";
-function tryNextTile() {
-  if (basemapKind !== "tiles" || tileIdx >= tileProviders.length) return;
-  if (baseLayer) map.removeLayer(baseLayer);
-  var p = tileProviders[tileIdx];
-  baseLayer = L.tileLayer(p.url, p.opts);
-  var timer = setTimeout(function() {
-    if (document.querySelectorAll(".leaflet-tile-loaded").length === 0) { tileIdx++; tryNextTile(); }
-  }, 4000);
-  baseLayer.on("tileload", function() { clearTimeout(timer); });
-  baseLayer.on("tileerror", function() { clearTimeout(timer); tileIdx++; tryNextTile(); });
-  baseLayer.addTo(map);
-}
-
-// Cartina piatta (Natural Earth): terre, laghi e fiumi, senza confini moderni né nomi
+// Cartina piatta (Natural Earth 1:10m): terre, laghi e fiumi, senza confini moderni né nomi.
+// Disegnata su canvas: con molti punti è più veloce dell'SVG.
 map.createPane("basePane");    map.getPane("basePane").style.zIndex = 150;
 map.createPane("bordersPane"); map.getPane("bordersPane").style.zIndex = 350;
 map.createPane("bordersLabelPane"); map.getPane("bordersLabelPane").style.zIndex = 450;
 map.getPane("bordersLabelPane").style.pointerEvents = "none";
-var flatLayer = L.layerGroup([
-  L.geoJSON({ type:"GeometryCollection", geometries:BASEMAP.land },
-    { pane:"basePane", interactive:false, style:{ color:"#b9ad94", weight:0.7, fillColor:"#efe8d8", fillOpacity:1 } }),
-  L.geoJSON({ type:"GeometryCollection", geometries:BASEMAP.lakes },
-    { pane:"basePane", interactive:false, style:{ color:"#a9bfc8", weight:0.5, fillColor:"#cfdde3", fillOpacity:1 } }),
-  L.geoJSON({ type:"GeometryCollection", geometries:BASEMAP.rivers.map(function(r) { return { type:"LineString", coordinates:r.c }; }) },
-    { pane:"basePane", interactive:false, style:{ color:"#8fb0c0", weight:1.1, opacity:0.9 } })
-]);
-function setBasemap(kind) {
-  basemapKind = kind;
-  var flat = kind === "flat";
-  document.getElementById("map").classList.toggle("flat", flat);
-  if (flat) {
-    if (baseLayer) { map.removeLayer(baseLayer); baseLayer = null; }
-    flatLayer.addTo(map);
-  } else {
-    map.removeLayer(flatLayer);
-    tileIdx = 0; tryNextTile();
-  }
-  var b = document.getElementById("toggle-basemap");
-  if (b) b.textContent = flat ? "🗺 Cartina: piatta" : "🗺 Cartina: stradale";
-}
-setBasemap("flat");
+var baseRenderer = L.canvas({ pane:"basePane", padding:0.5 });
+L.geoJSON({ type:"GeometryCollection", geometries:BASEMAP.land },
+  { renderer:baseRenderer, interactive:false, style:{ color:"#b9ad94", weight:0.7, fillColor:"#efe8d8", fillOpacity:1 } }).addTo(map);
+L.geoJSON({ type:"GeometryCollection", geometries:BASEMAP.lakes },
+  { renderer:baseRenderer, interactive:false, style:{ color:"#a9bfc8", weight:0.5, fillColor:"#cfdde3", fillOpacity:1 } }).addTo(map);
+L.geoJSON({ type:"GeometryCollection", geometries:BASEMAP.rivers.map(function(r) { return { type:"LineString", coordinates:r.c }; }) },
+  { renderer:baseRenderer, interactive:false, style:{ color:"#8fb0c0", weight:1.1, opacity:0.9 } }).addTo(map);
+map.attributionControl.addAttribution("Natural Earth · confini: Cliopatria (CC BY 4.0)");
 
 // ── STATO ────────────────────────────────────────────────────────────────────
 var layerGroup = L.layerGroup().addTo(map);
