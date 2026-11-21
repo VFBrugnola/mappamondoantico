@@ -22,6 +22,7 @@ Dashboard di studio personale sul Vicino Oriente antico nell'Età del Bronzo e d
 - G. Giusfredi, *Il Vicino Oriente antico* (Carocci): periodizzazione per regione (Tabella 1), sovrani di Ur III e della casata di Hammurapi (Tabelle 2 e 3)
 - E.H. Cline, *1177 a.C.*: sovrani della tarda Età del Bronzo
 - E.H. Cline, *La sopravvivenza delle civiltà*: sovrani dell'area settentrionale e meridionale, XIII – VIII sec. a.C.
+- Cronologia media standard (da verificare su Giusfredi): re di Akkad, Šamši-Adad I e re neo-assiri dell'VIII–VII sec. a.C. (date neo-assire dalle liste degli eponimi)
 
 - [Cliopatria](https://github.com/Seshat-Global-History-Databank/cliopatria) (Seshat Global History Databank), CC BY 4.0: confini dei regni. Modifiche: estratto 3500–300 a.C. per il Vicino Oriente, geometrie semplificate, nomi tradotti in italiano. I confini sono indicativi e hanno lacune (per esempio Urartu e Giuda dopo il 701 a.C.)
 - [Natural Earth](https://www.naturalearthdata.com/) (pubblico dominio): terre, fiumi e laghi della cartina piatta (1:10m; mancano alcuni fiumi minori come Oronte, Khabur, Zab e Diyala)

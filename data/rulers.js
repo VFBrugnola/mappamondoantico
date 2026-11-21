@@ -15,6 +15,13 @@ var RULERS = [
   { stato:"hyksos", nome:"Khyan",             inizio:-1610, fine:-1580, note:"XVII sec., re hyksos", ind:true },
   { stato:"hyksos", nome:"Apofi",             inizio:-1585, fine:-1545, note:"XVII-XVI sec., re hyksos, rivale di Seqenenra e Kahmose", ind:true },
 
+  // ── AKKAD (cronologia media standard; da verificare su Giusfredi) ──
+  { stato:"akkad", nome:"Sargon",             inizio:-2334, fine:-2279, note:"Fondatore dell'impero di Akkad, il primo impero mesopotamico", ind:true },
+  { stato:"akkad", nome:"Rimuš",              inizio:-2278, fine:-2270, note:"Figlio di Sargon; reprime le rivolte delle città sumeriche", ind:true },
+  { stato:"akkad", nome:"Maništušu",          inizio:-2269, fine:-2255, note:"Figlio di Sargon, fratello di Rimuš", ind:true },
+  { stato:"akkad", nome:"Naram-Sin",          inizio:-2254, fine:-2218, note:"Nipote di Sargon; si proclama 're delle quattro parti' e si fa divinizzare", ind:true },
+  { stato:"akkad", nome:"Šar-kali-šarri",     inizio:-2217, fine:-2193, note:"Ultimo grande re di Akkad; poi crisi e invasioni dei Gutei", ind:true },
+
   // ── UR III (Giusfredi, Tabella 2, cronologia media) ──
   { stato:"ur", nome:"Utu-khengal",          inizio:-2120, fine:-2113, note:"Re di Uruk, fino al 2113 ca.; inizio indicativo", ind:true },
   { stato:"ur", nome:"Ur-Nammu",             inizio:-2112, fine:-2095, note:"2113/12–2095, fondatore della III dinastia di Ur" },
@@ -73,6 +80,8 @@ var RULERS = [
   { stato:"ittiti", nome:"Šuppiluliuma II",   inizio:-1207, fine:-1185, note:"XII sec., ultimo re ittita, collasso ~1185" },
 
   // ── ASSIRIA ───────────────────────────────────────────────
+  // Paleo-assiro (cronologia media standard; da verificare su Giusfredi)
+  { stato:"assiria", nome:"Šamši-Adad I",     inizio:-1808, fine:-1776, note:"Regno dell'Alta Mesopotamia, capitale Šubat-Enlil; contemporaneo di Hammurapi", ind:true },
   // Bronzo Tardo (Cline 1177)
   { stato:"assiria", nome:"Assur-uballit I",  inizio:-1353, fine:-1318, note:"XIV sec., corrispondente delle lettere di Amarna", ind:true },
   { stato:"assiria", nome:"Adad-nirari I",    inizio:-1307, fine:-1275, note:"XIV sec., espansione assira" },
@@ -91,6 +100,19 @@ var RULERS = [
   { stato:"assiria", nome:"Salmanassar III",  inizio:-858,  fine:-824,  note:"IX sec., battaglia di Qarqar 853" },
   { stato:"assiria", nome:"Shamši-Adad V",    inizio:-823,  fine:-811,  note:"IX-VIII sec." },
   { stato:"assiria", nome:"Adad-nirari III",  inizio:-810,  fine:-783,  note:"IX-VIII sec." },
+  // Neo-assiro, VIII-VII sec. (date standard dalle liste degli eponimi; da verificare su Giusfredi)
+  { stato:"assiria", nome:"Salmanassar IV",   inizio:-783,  fine:-773,  note:"Periodo di debolezza; potere ai grandi funzionari" },
+  { stato:"assiria", nome:"Aššur-dan III",    inizio:-773,  fine:-755,  note:"Eclissi del 763 (base della cronologia assoluta), rivolte e peste" },
+  { stato:"assiria", nome:"Aššur-nirari V",   inizio:-755,  fine:-745,  note:"Trattato con Mati'ilu di Arpad; deposto" },
+  { stato:"assiria", nome:"Tiglatpileser III",inizio:-745,  fine:-727,  note:"Riforma dell'impero: province, deportazioni di massa; re anche di Babilonia" },
+  { stato:"assiria", nome:"Salmanassar V",    inizio:-727,  fine:-722,  note:"Assedio di Samaria" },
+  { stato:"assiria", nome:"Sargon II",        inizio:-722,  fine:-705,  note:"Fine del regno di Israele, campagna contro Urartu (714), fonda Dur-Šarrukin (Khorsabad)" },
+  { stato:"assiria", nome:"Sennacherib",      inizio:-705,  fine:-681,  note:"Assedio di Gerusalemme (701), distrugge Babilonia (689), capitale a Ninive" },
+  { stato:"assiria", nome:"Esarhaddon",       inizio:-681,  fine:-669,  note:"Ricostruisce Babilonia, conquista l'Egitto (671)" },
+  { stato:"assiria", nome:"Assurbanipal",     inizio:-669,  fine:-631,  note:"Apice dell'impero: sacco di Tebe, distruzione di Susa, biblioteca di Ninive; fine regno discussa", ind:true },
+  { stato:"assiria", nome:"Aššur-etel-ilani", inizio:-631,  fine:-627,  note:"Successione confusa, date discusse", ind:true },
+  { stato:"assiria", nome:"Sin-šar-iškun",    inizio:-627,  fine:-612,  note:"Muore nella caduta di Ninive (612) per mano di Medi e Babilonesi", ind:true },
+  { stato:"assiria", nome:"Aššur-uballiṭ II", inizio:-612,  fine:-609,  note:"Ultimo re, a Harran; sconfitto nonostante l'aiuto egizio" },
 
   // ── BABILONIA ─────────────────────────────────────────────
   // Bronzo Tardo (Cline 1177)
@@ -101,7 +123,7 @@ var RULERS = [
   { stato:"babilonia", nome:"Ammiditana",     inizio:-1683, fine:-1647, note:"1683–1647 ca." },
   { stato:"babilonia", nome:"Ammisaduqa",     inizio:-1646, fine:-1626, note:"1646–1626 ca." },
   { stato:"babilonia", nome:"Samsu-ditana",   inizio:-1625, fine:-1595, note:"1625–1595 ca., spodestato dagli Ittiti di Muršili I" },
-  { stato:"babilonia", nome:"Zimri-Lim (Marī)",inizio:-1775,fine:-1761, note:"XVIII sec., re di Marī contemporaneo di Hammurabi" },
+  { stato:"mari", nome:"Zimri-Lim",inizio:-1775,fine:-1761, note:"XVIII sec., re di Marī contemporaneo di Hammurabi" },
   { stato:"babilonia", nome:"Kurigalzu I",    inizio:-1375, fine:-1350, note:"XIV sec., dinastia cassita" },
   { stato:"babilonia", nome:"Kadashman-Enlil I",inizio:-1374,fine:-1360,note:"XIV sec." },
   { stato:"babilonia", nome:"Burna-Buriash II",inizio:-1359,fine:-1333, note:"XIV sec., trattato con Egitto" },
