@@ -466,7 +466,9 @@ var STATO_INFO = {
   giuda:          { label:"Giuda (Sud)",    colore:"#1abc9c" },
   moab:           { label:"Moab",           colore:"#95a5a6" },
   edom:           { label:"Edom",           colore:"#7f8c8d" },
+  akkad:          { label:"Akkad",          colore:"#6c3483" },
   ur:             { label:"Ur III",         colore:"#b07cc6" },
+  mari:           { label:"Mari",           colore:"#a1887f" },
   hyksos:         { label:"Hyksos",         colore:"#c9a227" },
   patina:         { label:"Patina (Kunulua)", colore:"#8d6e63" },
   amurru:         { label:"Amurru",         colore:"#b8a040" },
@@ -583,8 +585,8 @@ function renderRulers(year) {
     byStato[r.stato].push(r);
   });
   // Ordine preferenziale degli stati (grandi potenze prima)
-  var statiOrder = ["egitto","hyksos","ittiti","assiria","ur","babilonia","mitanni","persiana",
-                    "ugarit","amurru","elam","karkemish","patina","urartu","anatolia_occ","tiro","biblo","damasco",
+  var statiOrder = ["egitto","hyksos","ittiti","assiria","akkad","ur","babilonia","mitanni","persiana",
+                    "mari","ugarit","amurru","elam","karkemish","patina","urartu","anatolia_occ","tiro","biblo","damasco",
                     "samal","israele_unito","israele","giuda","moab","edom"];
   var statiAttivi = Object.keys(byStato).sort(function(a,b) {
     var ia = statiOrder.indexOf(a), ib = statiOrder.indexOf(b);
