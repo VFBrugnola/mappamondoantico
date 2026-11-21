@@ -7,8 +7,21 @@
 //  Struttura: { stato, nome, inizio, fine, note }
 //  inizio/fine in anni a.C. (negativi)
 //  "ca." indica datazione approssimativa
+//  ind:true = date stimate (il libro dà solo il secolo)
 // ============================================================
 var RULERS = [
+
+  // ── HYKSOS (Cline 1177: solo il secolo, date indicative) ──
+  { stato:"hyksos", nome:"Khyan",             inizio:-1610, fine:-1580, note:"XVII sec., re hyksos", ind:true },
+  { stato:"hyksos", nome:"Apofi",             inizio:-1585, fine:-1545, note:"XVII-XVI sec., re hyksos, rivale di Seqenenra e Kahmose", ind:true },
+
+  // ── UR III (Giusfredi, Tabella 2, cronologia media) ──
+  { stato:"ur", nome:"Utu-khengal",          inizio:-2120, fine:-2113, note:"Re di Uruk, fino al 2113 ca.; inizio indicativo", ind:true },
+  { stato:"ur", nome:"Ur-Nammu",             inizio:-2112, fine:-2095, note:"2113/12–2095, fondatore della III dinastia di Ur" },
+  { stato:"ur", nome:"Shulgi",               inizio:-2094, fine:-2047, note:"2095/94–2047" },
+  { stato:"ur", nome:"Amar-Suena",           inizio:-2046, fine:-2038, note:"2047/46–2038" },
+  { stato:"ur", nome:"Shu-Suena",            inizio:-2037, fine:-2029, note:"2038/37–2029" },
+  { stato:"ur", nome:"Ibbi-Suena",           inizio:-2028, fine:-2004, note:"2029/28–2004, fine dell'impero di Ur" },
 
   // ── EGITTO ────────────────────────────────────────────────
   // Bronzo Tardo (Cline 1177)
@@ -16,9 +29,9 @@ var RULERS = [
   { stato:"egitto", nome:"Kahmose",           inizio:-1555, fine:-1550, note:"XVI sec." },
   { stato:"egitto", nome:"Ahmose I",          inizio:-1550, fine:-1525, note:"Fondatore del Nuovo Regno, espulsione degli Hyksos" },
   { stato:"egitto", nome:"Thutmose I",        inizio:-1506, fine:-1493, note:"XV sec." },
-  { stato:"egitto", nome:"Thutmose II",       inizio:-1493, fine:-1479, note:"XV sec." },
+  { stato:"egitto", nome:"Thutmose II",       inizio:-1493, fine:-1481, note:"XV sec." },
   { stato:"egitto", nome:"Hatshepsut",        inizio:-1479, fine:-1458, note:"XV sec., faraone donna" },
-  { stato:"egitto", nome:"Thutmose III",      inizio:-1458, fine:-1425, note:"XV sec., massima espansione egiziana" },
+  { stato:"egitto", nome:"Thutmose III",      inizio:-1481, fine:-1425, note:"XV sec., massima espansione egiziana; inizio del regno secondo Wikipedia, co-reggenza con Hatshepsut fino al 1458" },
   { stato:"egitto", nome:"Amenofi III",       inizio:-1390, fine:-1352, note:"XIV sec., apogeo diplomatico" },
   { stato:"egitto", nome:"Akhenaton",         inizio:-1352, fine:-1336, note:"XIV sec., rivoluzione religiosa monoteista" },
   { stato:"egitto", nome:"Tutankhamon",       inizio:-1336, fine:-1327, note:"XIV sec." },
@@ -61,6 +74,7 @@ var RULERS = [
 
   // ── ASSIRIA ───────────────────────────────────────────────
   // Bronzo Tardo (Cline 1177)
+  { stato:"assiria", nome:"Assur-uballit I",  inizio:-1353, fine:-1318, note:"XIV sec., corrispondente delle lettere di Amarna", ind:true },
   { stato:"assiria", nome:"Adad-nirari I",    inizio:-1307, fine:-1275, note:"XIV sec., espansione assira" },
   { stato:"assiria", nome:"Tukulti-Ninurta I",inizio:-1244, fine:-1208, note:"XIII sec., conquista di Babilonia" },
   { stato:"assiria", nome:"Assur-dan I",      inizio:-1179, fine:-1133, note:"XII-XI sec." },
@@ -81,6 +95,12 @@ var RULERS = [
   // ── BABILONIA ─────────────────────────────────────────────
   // Bronzo Tardo (Cline 1177)
   { stato:"babilonia", nome:"Hammurabi",      inizio:-1792, fine:-1750, note:"XVIII sec., codice di leggi" },
+  // Casata di Hammurapi (Giusfredi, Tabella 3, cronologia media)
+  { stato:"babilonia", nome:"Samsu-iluna",    inizio:-1749, fine:-1712, note:"1749–1712 ca." },
+  { stato:"babilonia", nome:"Abieshukh",      inizio:-1711, fine:-1684, note:"1711–1684 ca." },
+  { stato:"babilonia", nome:"Ammiditana",     inizio:-1683, fine:-1647, note:"1683–1647 ca." },
+  { stato:"babilonia", nome:"Ammisaduqa",     inizio:-1646, fine:-1626, note:"1646–1626 ca." },
+  { stato:"babilonia", nome:"Samsu-ditana",   inizio:-1625, fine:-1595, note:"1625–1595 ca., spodestato dagli Ittiti di Muršili I" },
   { stato:"babilonia", nome:"Zimri-Lim (Marī)",inizio:-1775,fine:-1761, note:"XVIII sec., re di Marī contemporaneo di Hammurabi" },
   { stato:"babilonia", nome:"Kurigalzu I",    inizio:-1375, fine:-1350, note:"XIV sec., dinastia cassita" },
   { stato:"babilonia", nome:"Kadashman-Enlil I",inizio:-1374,fine:-1360,note:"XIV sec." },
@@ -88,6 +108,7 @@ var RULERS = [
   { stato:"babilonia", nome:"Kurigalzu II",   inizio:-1332, fine:-1308, note:"XIV sec." },
   { stato:"babilonia", nome:"Kashtiliashu",   inizio:-1232, fine:-1225, note:"XIII sec., sconfitta da Tukulti-Ninurta I" },
   // Ferro (Cline La sopravvivenza)
+  { stato:"babilonia", nome:"Enlil-nadin-ahi",inizio:-1157, fine:-1155, note:"1157–1155 ca., ultimo re cassita" },
   { stato:"babilonia", nome:"Nabucodonosor I",inizio:-1125, fine:-1104, note:"XII sec., II dinastia di Isin" },
   { stato:"babilonia", nome:"Marduk-nadin-ahhe",inizio:-1099,fine:-1082,note:"XII sec. ca." },
   { stato:"babilonia", nome:"Marduk-sapik-zeri",inizio:-1082,fine:-1069,note:"XI sec." },
@@ -125,7 +146,6 @@ var RULERS = [
   { stato:"elam", nome:"Shutruk-Nahhunte",    inizio:-1190, fine:-1155, note:"XII sec., saccheggio di Babilonia" },
   { stato:"elam", nome:"Kutur-Nahhunte",      inizio:-1155, fine:-1150, note:"XII sec. ca." },
   { stato:"elam", nome:"Hutelutush-Inshushinak",inizio:-1120,fine:-1110,note:"XII sec. ca." },
-  { stato:"elam", nome:"Shutruk-Nakhunte",    inizio:-1185, fine:-1185, note:"XII sec." },
 
   // ── KARKEMISH (grande re) ─────────────────────────────────
   { stato:"karkemish", nome:"Kuzi-Tešub",     inizio:-1200, fine:-1180, note:"XII sec. ca., neoittita" },
@@ -143,6 +163,25 @@ var RULERS = [
   { stato:"karkemish", nome:"Kuwalana-muwa",  inizio:-830,  fine:-815,  note:"II metà IX sec." },
   { stato:"karkemish", nome:"Astiru(wa) I",   inizio:-810,  fine:-800,  note:"IX sec. ca." },
   { stato:"karkemish", nome:"Kamani",         inizio:-790,  fine:-780,  note:"VIII sec. ca." },
+
+  // ── PATINA / KUNULUA (Tayinat) — Cline, La sopravvivenza: solo secoli, date indicative ──
+  { stato:"patina", nome:"Taita I",           inizio:-1075, fine:-1025, note:"XI sec.", ind:true },
+  { stato:"patina", nome:"Taita II",          inizio:-1000, fine:-980,  note:"Inizio X sec.", ind:true },
+  { stato:"patina", nome:"Manana",            inizio:-960,  fine:-940,  note:"Metà X sec.", ind:true },
+  { stato:"patina", nome:"Šuppiluliuma I",    inizio:-920,  fine:-900,  note:"Fine X sec.", ind:true },
+  { stato:"patina", nome:"Halparuntiya",      inizio:-900,  fine:-885,  note:"Inizio IX sec.", ind:true },
+  { stato:"patina", nome:"Lubarna I",         inizio:-885,  fine:-870,  note:"Inizio IX sec. (nome incerto)", ind:true },
+  { stato:"patina", nome:"Šuppiluliuma II / Sapalulme", inizio:-870, fine:-857, note:"Metà IX sec.", ind:true },
+  { stato:"patina", nome:"Qalparunda II",     inizio:-857,  fine:-840,  note:"Metà IX sec.", ind:true },
+  { stato:"patina", nome:"Lubarna II",        inizio:-830,  fine:-810,  note:"Fine IX sec.", ind:true },
+
+  // ── AMURRU e ANATOLIA OCCIDENTALE (Cline 1177: solo secoli, date indicative) ──
+  { stato:"amurru", nome:"Shaushgamuwa",      inizio:-1235, fine:-1225, note:"XIII sec., vassallo di Tudhaliya IV", ind:true },
+  { stato:"anatolia_occ", nome:"Kukkuli (Assuwa)",      inizio:-1435, fine:-1425, note:"XV sec., rivolta di Assuwa contro gli Ittiti", ind:true },
+  { stato:"anatolia_occ", nome:"Tarkhundaradu (Arzawa)",inizio:-1365, fine:-1355, note:"XIV sec., corrispondente di Amenofi III", ind:true },
+  { stato:"anatolia_occ", nome:"Alaksandu (Wilusa)",    inizio:-1285, fine:-1275, note:"XIII sec., trattato con Muwattalli II", ind:true },
+  { stato:"anatolia_occ", nome:"Walmu (Wilusa)",        inizio:-1235, fine:-1225, note:"XIII sec.", ind:true },
+  { stato:"anatolia_occ", nome:"Tarkasnawa (Mira)",     inizio:-1225, fine:-1215, note:"XIII sec.", ind:true },
 
   // ── URARTU ────────────────────────────────────────────────
   { stato:"urartu", nome:"Arame",             inizio:-859,  fine:-844,  note:"IX sec." },

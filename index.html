@@ -14,6 +14,8 @@
 <script src="data/routes.js"></script>
 <script src="data/battles.js"></script>
 <script src="data/archaeology.js"></script>
+<script src="data/regional_periods.js"></script>
+<script src="timeline.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:"Georgia",serif; background:#1a1208; color:#e8d9b0;
@@ -239,6 +241,62 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 .leaflet-control-zoom a { background:#0e0a05 !important; color:#d4a843 !important;
   border-color:#5c3d0a !important; }
 
+/* ── LINEA DEL TEMPO (timeline.js) ──────────────────────────────── */
+#toggle-timeline { flex-shrink:0; background:none; border:1px solid #5c3d0a; color:#d4a843;
+  font-family:"Georgia",serif; font-size:0.6rem; padding:3px 9px; cursor:pointer;
+  border-radius:2px; white-space:nowrap; transition:all 0.15s; }
+#toggle-timeline.active { background:rgba(212,168,67,0.22); border-color:#d4a843; }
+#timeline-drawer { position:relative; flex:0 0 auto; height:44vh; min-height:200px;
+  background:#0b0805; border-top:1px solid #5c3d0a; display:flex; flex-direction:column; }
+#timeline-drawer[hidden] { display:none; }
+body.tl-full #main-area { display:none; }
+body.tl-full #timeline-drawer { flex:1; height:auto; }
+.tl-nav { position:relative; flex:1; min-height:0; overflow-x:hidden; overflow-y:auto; cursor:grab;
+  user-select:none; -webkit-user-select:none; touch-action:pan-y; font-family:"Georgia",serif; }
+.tl-nav.drag { cursor:grabbing; }
+.tl-nav::-webkit-scrollbar { width:5px; }
+.tl-nav::-webkit-scrollbar-thumb { background:#3a2a0a; border-radius:2px; }
+.tl-track { position:absolute; left:0; top:0; }
+.tl-track.anim { transition:transform .4s ease; }
+.tl-head { position:absolute; left:0; right:0; top:0; background:#0e0a05; border-bottom:1px solid #3a2a0a; z-index:3; }
+.tl-era { position:absolute; top:4px; height:18px; line-height:18px; padding:0 6px; font-size:0.62rem;
+  color:#f3e6c4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; border-radius:2px; opacity:.9; }
+.tl-tick { position:absolute; height:20px; padding:4px 0 0 4px; border-left:1px solid #5c3d0a;
+  font-size:0.6rem; color:#8a7050; white-space:nowrap; }
+.tl-gridl { position:absolute; bottom:0; border-left:1px solid #1e160a; pointer-events:none; }
+.tl-gband { position:absolute; left:0; right:0; border-top:1px dashed #2a1f0e; pointer-events:none; }
+.tl-gband span { position:absolute; left:8px; top:1px; font-size:0.56rem; letter-spacing:0.08em;
+  text-transform:uppercase; color:#6a5535; background:#0b0805; padding:0 4px; }
+.tl-gband.tl-g-regione span, .tl-gband.tl-g-eventi span { color:#d4a843; }
+.tl-gband.tl-g-regione { border-top:1px solid #5c3d0a; }
+.tl-ev { position:absolute; height:28px; }
+.tl-card { position:absolute; left:0; top:0; width:132px; height:26px; padding:2px 6px 2px 7px;
+  background:#16100a; border:1px solid #2a1f0e; border-left:3px solid #d4a843; border-radius:0 3px 3px 0;
+  font-size:0.62rem; line-height:1.2; white-space:nowrap; overflow:hidden; cursor:pointer; box-sizing:border-box; }
+.tl-card:hover { background:#21180c; }
+.tl-card b { display:block; font-weight:normal; color:#e8d9b0; overflow:hidden; text-overflow:ellipsis; }
+.tl-card span { display:block; font-size:0.55rem; color:#7a6545; overflow:hidden; text-overflow:ellipsis; }
+.tl-range { position:absolute; left:0; top:27px; height:3px; border-radius:2px; opacity:.55; }
+.tl-ev.ind .tl-card { border-style:dashed; border-left-style:dashed; }
+.tl-ev.ind .tl-range { opacity:.3; background-image:repeating-linear-gradient(90deg,transparent 0 4px,#0b0805 4px 7px) !important; }
+.tl-cur { position:absolute; top:0; bottom:0; width:0; border-left:2px solid #e67e22; z-index:4; pointer-events:none; }
+.tl-cur-h { position:absolute; left:-34px; width:68px; height:18px; line-height:18px; text-align:center;
+  background:#e67e22; color:#0e0a05; font-size:0.6rem; font-weight:bold; border-radius:3px;
+  pointer-events:auto; cursor:ew-resize; touch-action:none; white-space:nowrap; }
+.tl-tools { position:absolute; right:10px; top:4px; z-index:6; display:flex; gap:4px; }
+.tl-tools button { width:26px; height:24px; background:#0e0a05; border:1px solid #5c3d0a; color:#d4a843;
+  border-radius:3px; cursor:pointer; font-size:0.85rem; line-height:1; padding:0; }
+.tl-tools button.on { background:#d4a843; color:#0e0a05; }
+.tl-info { position:absolute; right:10px; bottom:10px; z-index:6; width:min(320px, calc(100% - 20px));
+  max-height:60%; overflow:auto; background:#0e0a05; border:1px solid #5c3d0a; border-radius:4px;
+  padding:8px 10px; box-shadow:0 4px 18px rgba(0,0,0,.6); font-family:"Georgia",serif; }
+.tl-info[hidden] { display:none; }
+.tl-info-h { display:flex; justify-content:space-between; gap:8px; font-size:0.8rem; }
+.tl-info-h b { font-weight:normal; }
+.tl-info-h button { background:none; border:0; color:#8a7050; font-size:1rem; cursor:pointer; line-height:1; }
+.tl-info-sub { font-size:0.6rem; color:#6a5535; font-style:italic; margin:2px 0 4px; }
+.tl-info-note { font-size:0.66rem; color:#c8b890; line-height:1.45; }
+
 /* ── MOBILE ─────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   /* Fallback per browser senza dvh, poi sovrascrittura con dvh */
@@ -268,6 +326,8 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
   #btn-all-periods { font-size:0.56rem; padding:3px 7px; }
   #toggle-battles  { font-size:0.56rem; padding:3px 7px; }
   #toggle-routes   { font-size:0.56rem; padding:3px 7px; margin-left:0; }
+  #toggle-timeline { font-size:0.56rem; padding:3px 7px; }
+  #timeline-drawer { height:50vh; min-height:0; }
 
   /* Timeline */
   #timeline-bar { padding:5px 10px; gap:6px; }
@@ -311,7 +371,11 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
   </div>
 </div>
 
+<!-- LINEA DEL TEMPO (timeline.js) -->
+<div id="timeline-drawer" hidden></div>
+
 <div id="period-bar">
+  <button id="toggle-timeline" onclick="toggleTimeline()" title="Linea del tempo sinottica: periodi e sovrani per civiltà">&#9203; Linea del tempo</button>
   <button id="btn-all-periods" class="active" onclick="selectPeriod(null,this)">Tutte le epoche</button>
   <button id="toggle-arch" onclick="toggleArch(this)" title="Mostra/nascondi scoperte archeologiche">⛏ Archeologia</button>
   <button id="toggle-battles" onclick="toggleBattles(this)" title="Mostra/nascondi battaglie e assedi">⚔ Battaglie</button>
@@ -389,7 +453,13 @@ var STATO_INFO = {
   israele:        { label:"Israele (Nord)", colore:"#2980b9" },
   giuda:          { label:"Giuda (Sud)",    colore:"#1abc9c" },
   moab:           { label:"Moab",           colore:"#95a5a6" },
-  edom:           { label:"Edom",           colore:"#7f8c8d" }
+  edom:           { label:"Edom",           colore:"#7f8c8d" },
+  ur:             { label:"Ur III",         colore:"#b07cc6" },
+  hyksos:         { label:"Hyksos",         colore:"#c9a227" },
+  patina:         { label:"Patina (Kunulua)", colore:"#8d6e63" },
+  amurru:         { label:"Amurru",         colore:"#b8a040" },
+  anatolia_occ:   { label:"Anatolia occidentale", colore:"#b5651d" },
+  persiana:       { label:"Persia achemenide", colore:"#1abc9c" }
 };
 
 // ── PERIODO BUTTONS ───────────────────────────────────────────────────────────
@@ -412,6 +482,7 @@ function selectPeriod(p, btn) {
     var slider = document.getElementById("year-slider");
     slider.min = p.min; slider.max = p.max; slider.value = p.mid;
     onSlider(p.mid);
+    Timeline.zoomTo(p.min, p.max);
     document.getElementById("event-panel").classList.add("visible");
   } else {
     sliderActive = false;
@@ -464,6 +535,7 @@ function onSlider(val) {
   renderRulers(currentYear);
   renderRoutes(currentYear);
   renderBattles(currentYear);
+  Timeline.setYear(currentYear);
 }
 
 function formatYear(y) {
@@ -498,8 +570,8 @@ function renderRulers(year) {
     byStato[r.stato].push(r);
   });
   // Ordine preferenziale degli stati (grandi potenze prima)
-  var statiOrder = ["egitto","ittiti","assiria","babilonia","mitanni","persiana",
-                    "ugarit","elam","karkemish","urartu","tiro","biblo","damasco",
+  var statiOrder = ["egitto","hyksos","ittiti","assiria","ur","babilonia","mitanni","persiana",
+                    "ugarit","amurru","elam","karkemish","patina","urartu","anatolia_occ","tiro","biblo","damasco",
                     "samal","israele_unito","israele","giuda","moab","edom"];
   var statiAttivi = Object.keys(byStato).sort(function(a,b) {
     var ia = statiOrder.indexOf(a), ib = statiOrder.indexOf(b);
@@ -516,7 +588,7 @@ function renderRulers(year) {
       html += "<div class='ruler-dot' style='background:" + info.colore + "'></div>";
       html += "<div class='ruler-info'>";
       html += "<div class='ruler-name'>" + r.nome + "</div>";
-      html += "<div class='ruler-dates'>" + formatYear(r.inizio) + " – " + formatYear(r.fine) + "</div>";
+      html += "<div class='ruler-dates'>" + formatYear(r.inizio) + " – " + formatYear(r.fine) + (r.ind ? " · date indicative" : "") + "</div>";
       if (r.note) html += "<div class='ruler-note'>" + r.note + "</div>";
       html += "</div>";
       html += "</div>";
@@ -903,6 +975,43 @@ legend.onAdd = function() {
   return div;
 };
 legend.addTo(map);
+
+// ── LINEA DEL TEMPO ───────────────────────────────────────────────────────────
+// L'anno scelto sulla linea del tempo diventa l'anno della mappa (e viceversa, da onSlider).
+function setYearFromTimeline(y) {
+  var slider = document.getElementById("year-slider");
+  if (y < +slider.min || y > +slider.max) {          // fuori dall'epoca scelta: torna a tutte le epoche
+    currentPeriod = null;
+    document.querySelectorAll(".period-btn").forEach(function(b) { b.classList.remove("active"); });
+    document.getElementById("btn-all-periods").classList.add("active");
+    slider.min = -3500; slider.max = -300;
+  }
+  slider.value = y;
+  document.getElementById("event-panel").classList.add("visible");
+  onSlider(y);
+}
+Timeline.init({
+  el: "timeline-drawer",
+  statoInfo: STATO_INFO,
+  onYear: setYearFromTimeline,
+  onPick: function(x) {
+    setYearFromTimeline(x.t);
+    if (x.city) {                                       // evento legato a una città: vola lì e apri la scheda
+      var m = allMarkers.find(function(a) { return a.city.id === x.city; });
+      if (m) { map.flyTo([m.city.lat, m.city.lng], Math.max(map.getZoom(), 6)); setTimeout(function() { m.marker.openPopup(); }, 900); }
+    } else if (x.lat != null) {
+      map.flyTo([x.lat, x.lng], Math.max(map.getZoom(), 6));
+    }
+  },
+  onClose: function() { toggleTimeline(false); },
+  onFull: function() { setTimeout(function() { map.invalidateSize(); }, 50); }
+});
+function toggleTimeline(force) {
+  var open = force !== undefined ? force : !Timeline.isOpen();
+  document.getElementById("toggle-timeline").classList.toggle("active", open);
+  if (open) Timeline.show(); else Timeline.hide();
+  setTimeout(function() { map.invalidateSize(); }, 50);
+}
 </script>
 </body>
 </html>
